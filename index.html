@@ -1,74 +1,3846 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+  <base target="_top">
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#25346f">
 
   <title>VB Behördenpost</title>
 
-  <meta name="theme-color" content="#25346f">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="VB Behördenpost">
 
-  <link rel="manifest" href="./manifest.json">
-  <link rel="apple-touch-icon" href="./icon-192.png">
-
   <style>
+    :root {
+      --blue:#34499a;
+      --blue2:#25346f;
+      --blue3:#eef1fb;
+      --bg:#f4f6fa;
+      --card:#ffffff;
+      --text:#1e2633;
+      --muted:#718096;
+      --border:#e4e8f0;
+      --green:#16743a;
+      --greenbg:#e8f5ec;
+      --yellow:#8a6200;
+      --yellowbg:#fff3c7;
+      --red:#b42318;
+      --redbg:#fee8e7;
+      --shadow:0 10px 35px rgba(38,54,111,.08);
+    }
+
+    * {
+      box-sizing:border-box;
+    }
+
     html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      background: #25346f;
-      font-family: Arial, Helvetica, sans-serif;
+      margin:0;
+      min-height:100%;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Arial, Helvetica, sans-serif;
+      -webkit-text-size-adjust:100%;
     }
 
     body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      overflow-x:hidden;
     }
 
-    .start {
-      text-align: center;
-      color: white;
+    button, input {
+      font:inherit;
     }
 
-    .logo {
-      width: 160px;
-      max-width: 55vw;
-      border-radius: 24px;
-      margin-bottom: 20px;
+    button {
+      cursor:pointer;
     }
 
-    .title {
-      font-size: 26px;
-      font-weight: 700;
+    .hidden {
+      display:none !important;
     }
 
-    .text {
-      margin-top: 8px;
-      opacity: .8;
-      font-size: 14px;
+    /* ============================================================
+       LOGIN
+       ============================================================ */
+
+    #loginView {
+      position:fixed;
+      inset:0;
+      z-index:1000;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      padding:20px;
+
+      background:
+        radial-gradient(
+          circle at 50% 0%,
+          #4359ad 0%,
+          var(--blue2) 42%,
+          #172044 100%
+        );
     }
+
+    .login-card {
+      width:min(430px,100%);
+
+      padding:34px 30px;
+
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:24px;
+
+      background:#fff;
+
+      box-shadow:
+        0 30px 90px rgba(0,0,0,.28);
+    }
+
+    .login-brand {
+      text-align:center;
+    }
+
+    .login-fire {
+      width:68px;
+      height:68px;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      margin:0 auto 17px;
+
+      border-radius:20px;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--blue2),
+          var(--blue)
+        );
+
+      color:#fff;
+
+      font-size:31px;
+
+      box-shadow:
+        0 12px 30px rgba(52,73,154,.25);
+    }
+
+    .login-small {
+      color:var(--blue);
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.09em;
+    }
+
+    .login-title {
+      margin-top:6px;
+      font-size:27px;
+      font-weight:900;
+    }
+
+    .login-subtitle {
+      margin-top:8px;
+
+      color:var(--muted);
+
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .login-form {
+      margin-top:27px;
+    }
+
+    .login-label {
+      display:block;
+
+      margin:0 0 7px 2px;
+
+      color:#566176;
+
+      font-size:10px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+
+    .code-input {
+      width:100%;
+      height:56px;
+
+      padding:0 16px;
+
+      border:2px solid #dfe4ef;
+      border-radius:14px;
+
+      outline:none;
+
+      background:#f9fafc;
+
+      color:var(--text);
+
+      font-size:19px;
+      font-weight:900;
+      text-align:center;
+      letter-spacing:.08em;
+
+      transition:.15s;
+    }
+
+    .code-input:focus {
+      border-color:#a9b4df;
+      background:#fff;
+
+      box-shadow:
+        0 8px 25px rgba(52,73,154,.09);
+    }
+
+    .login-button {
+      width:100%;
+      min-height:52px;
+
+      margin-top:13px;
+
+      border:0;
+      border-radius:14px;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--blue2),
+          var(--blue)
+        );
+
+      color:#fff;
+
+      font-size:13px;
+      font-weight:900;
+
+      box-shadow:
+        0 10px 25px rgba(52,73,154,.22);
+    }
+
+    .login-button:disabled {
+      opacity:.6;
+      cursor:default;
+    }
+
+    .login-error {
+      display:none;
+
+      margin-top:11px;
+      padding:10px 12px;
+
+      border-radius:10px;
+
+      background:var(--redbg);
+      color:var(--red);
+
+      font-size:10px;
+      font-weight:800;
+      text-align:center;
+    }
+
+    .login-footer {
+      margin-top:22px;
+
+      color:#929bad;
+
+      font-size:9px;
+      line-height:1.5;
+      text-align:center;
+    }
+
+    /* ============================================================
+       TOPBAR
+       ============================================================ */
+
+    .topbar {
+      position:sticky;
+      top:0;
+      z-index:50;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+
+      padding:15px 24px;
+
+      color:#fff;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--blue2),
+          var(--blue)
+        );
+
+      box-shadow:
+        0 7px 30px rgba(31,46,101,.18);
+    }
+
+    .brand-small {
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.09em;
+      opacity:.78;
+    }
+
+    .brand-title {
+      margin-top:3px;
+      font-size:23px;
+      font-weight:900;
+    }
+
+    .top-right {
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .top-pill {
+      padding:8px 11px;
+
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:999px;
+
+      background:rgba(255,255,255,.12);
+
+      color:#fff;
+
+      font-size:10px;
+      font-weight:800;
+    }
+
+    .logout-button {
+      border:1px solid rgba(255,255,255,.18);
+      cursor:pointer;
+    }
+
+    .logout-button:hover {
+      background:rgba(255,255,255,.2);
+    }
+
+    /* ============================================================
+       SEITE
+       ============================================================ */
+
+    .page {
+      width:100%;
+      max-width:1400px;
+
+      margin:0 auto;
+      padding:24px;
+    }
+
+    /* ============================================================
+       SUCHBEREICH
+       ============================================================ */
+
+    .hero {
+      padding:27px;
+
+      border:1px solid var(--border);
+      border-radius:22px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #fff,
+          #f7f8ff
+        );
+
+      box-shadow:var(--shadow);
+    }
+
+    .hero-title {
+      margin:0;
+      font-size:29px;
+      font-weight:900;
+    }
+
+    .hero-text {
+      margin-top:7px;
+
+      color:var(--muted);
+
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .search-area {
+      position:relative;
+      margin-top:22px;
+    }
+
+    .search-box {
+      position:relative;
+    }
+
+    .search-icon {
+      position:absolute;
+      left:17px;
+      top:50%;
+
+      transform:translateY(-50%);
+
+      font-size:20px;
+
+      pointer-events:none;
+    }
+
+    .search-input {
+      width:100%;
+      min-height:58px;
+
+      padding:15px 52px 15px 50px;
+
+      border:2px solid #dce2f1;
+      border-radius:16px;
+
+      background:#fff;
+      color:var(--text);
+
+      outline:none;
+
+      font-size:16px;
+      font-weight:700;
+
+      box-shadow:
+        0 7px 24px rgba(38,54,111,.06);
+
+      transition:.15s;
+    }
+
+    .search-input:focus {
+      border-color:#aeb9e5;
+
+      box-shadow:
+        0 10px 30px rgba(38,54,111,.11);
+    }
+
+    .clear-search {
+      position:absolute;
+      right:12px;
+      top:50%;
+
+      transform:translateY(-50%);
+
+      width:34px;
+      height:34px;
+
+      display:none;
+
+      border:0;
+      border-radius:50%;
+
+      background:#f0f2f7;
+      color:#667288;
+
+      font-weight:900;
+    }
+
+    .search-help {
+      margin:8px 4px 0;
+
+      color:var(--muted);
+
+      font-size:10px;
+    }
+
+    /* ============================================================
+       SUCHERGEBNISSE
+       ============================================================ */
+
+    .search-results {
+      display:none;
+
+      margin-top:11px;
+
+      overflow:hidden;
+
+      border:1px solid var(--border);
+      border-radius:16px;
+
+      background:#fff;
+
+      box-shadow:
+        0 18px 50px rgba(25,36,80,.13);
+    }
+
+    .search-results.show {
+      display:block;
+    }
+
+    .results-head {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+
+      padding:11px 14px;
+
+      border-bottom:1px solid var(--border);
+
+      background:#f7f8fc;
+
+      color:var(--muted);
+
+      font-size:9px;
+      font-weight:900;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    .results-list {
+      max-height:520px;
+      overflow:auto;
+    }
+
+    .result-row {
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:12px;
+      align-items:center;
+
+      padding:14px 15px;
+
+      border-bottom:1px solid #edf0f5;
+
+      cursor:pointer;
+
+      transition:.13s;
+    }
+
+    .result-row:last-child {
+      border-bottom:0;
+    }
+
+    .result-row:hover {
+      background:#f8f9fe;
+    }
+
+    .result-title {
+      font-size:14px;
+      font-weight:900;
+      line-height:1.35;
+    }
+
+    .result-address {
+      margin-top:3px;
+
+      color:#4f5d73;
+
+      font-size:11px;
+      line-height:1.4;
+    }
+
+    .result-meta {
+      margin-top:5px;
+
+      color:var(--muted);
+
+      font-size:10px;
+      line-height:1.45;
+    }
+
+    .result-arrow {
+      color:#9aa5b5;
+      font-size:21px;
+    }
+
+    /* ============================================================
+       DASHBOARD
+       ============================================================ */
+
+    .dashboard {
+      display:grid;
+      grid-template-columns:.85fr 1.3fr 1.3fr;
+      gap:14px;
+
+      margin-top:20px;
+    }
+
+    .card {
+      padding:17px;
+
+      border:1px solid var(--border);
+      border-radius:17px;
+
+      background:#fff;
+
+      box-shadow:var(--shadow);
+    }
+
+    .card-heading {
+      margin-bottom:12px;
+
+      color:#5f6c82;
+
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+
+    .total-number {
+      color:var(--blue);
+
+      font-size:38px;
+      font-weight:900;
+      line-height:1;
+    }
+
+    .total-label {
+      margin-top:7px;
+
+      color:var(--muted);
+
+      font-size:10px;
+      line-height:1.45;
+    }
+
+    .stats {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+
+      margin-top:14px;
+    }
+
+    .stat {
+      padding:10px;
+
+      border-radius:10px;
+
+      background:#f7f8fc;
+
+      text-align:center;
+    }
+
+    .stat strong {
+      display:block;
+      font-size:18px;
+    }
+
+    .stat span {
+      display:block;
+
+      margin-top:3px;
+
+      color:var(--muted);
+
+      font-size:8px;
+      font-weight:900;
+      text-transform:uppercase;
+    }
+
+    /* ============================================================
+       LISTEN
+       ============================================================ */
+
+    .mini-list {
+      display:grid;
+      gap:7px;
+    }
+
+    .mini-item {
+      padding:10px 11px;
+
+      border-radius:10px;
+
+      background:#f8f9fc;
+
+      cursor:pointer;
+
+      transition:.13s;
+    }
+
+    .mini-item:hover {
+      background:#f0f3fb;
+    }
+
+    .mini-title {
+      font-size:11px;
+      font-weight:900;
+      line-height:1.4;
+    }
+
+    .mini-sub {
+      margin-top:3px;
+
+      color:var(--muted);
+
+      font-size:9px;
+      line-height:1.4;
+    }
+
+    /* ============================================================
+       BEREICH
+       ============================================================ */
+
+    .section {
+      margin-top:20px;
+
+      overflow:hidden;
+
+      border:1px solid var(--border);
+      border-radius:18px;
+
+      background:#fff;
+
+      box-shadow:var(--shadow);
+    }
+
+    .section-head {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:15px;
+
+      padding:16px 18px;
+
+      border-bottom:1px solid var(--border);
+    }
+
+    .section-title {
+      font-size:14px;
+      font-weight:900;
+    }
+
+    .section-subtitle {
+      margin-top:3px;
+
+      color:var(--muted);
+
+      font-size:10px;
+    }
+
+    .section-body {
+      padding:15px 18px;
+    }
+
+    /* ============================================================
+       KATEGORIEN
+       ============================================================ */
+
+    .categories {
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:8px;
+    }
+
+    .category-card {
+      padding:12px;
+
+      border:1px solid #edf0f5;
+      border-radius:11px;
+
+      background:#f7f8fc;
+    }
+
+    .category-number {
+      color:var(--blue);
+
+      font-size:18px;
+      font-weight:900;
+    }
+
+    .category-name {
+      margin-top:4px;
+
+      color:var(--muted);
+
+      font-size:9px;
+      font-weight:800;
+      line-height:1.35;
+    }
+
+    /* ============================================================
+       BUTTONS
+       ============================================================ */
+
+    .btn {
+      min-height:40px;
+
+      padding:9px 13px;
+
+      border:0;
+      border-radius:10px;
+
+      font-size:11px;
+      font-weight:900;
+    }
+
+    .btn-primary {
+      background:var(--blue);
+      color:#fff;
+    }
+
+    .btn-light {
+      background:#f1f3f8;
+      color:var(--text);
+    }
+
+    .btn-outline {
+      border:1px solid var(--border);
+
+      background:#fff;
+      color:var(--text);
+    }
+
+    /* ============================================================
+       OBJEKTAKTE
+       ============================================================ */
+
+    .object-page {
+      width:100%;
+      max-width:1100px;
+
+      margin:0 auto;
+      padding:24px;
+    }
+
+    .back-button {
+      margin-bottom:15px;
+      padding:0;
+
+      border:0;
+
+      background:transparent;
+      color:var(--blue);
+
+      font-size:12px;
+      font-weight:900;
+    }
+
+    .object-header {
+      padding:24px;
+
+      border:1px solid var(--border);
+      border-radius:20px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #fff,
+          #f7f8ff
+        );
+
+      box-shadow:var(--shadow);
+    }
+
+    .object-eyebrow {
+      color:var(--muted);
+
+      font-size:9px;
+      font-weight:900;
+      letter-spacing:.07em;
+      text-transform:uppercase;
+    }
+
+    .object-title {
+      margin-top:6px;
+
+      font-size:26px;
+      font-weight:900;
+      line-height:1.25;
+    }
+
+    .object-address {
+      margin-top:7px;
+
+      color:#5e6a7e;
+
+      font-size:13px;
+      line-height:1.45;
+    }
+
+    .object-count {
+      display:inline-flex;
+
+      margin-top:13px;
+      padding:6px 9px;
+
+      border-radius:999px;
+
+      background:var(--blue3);
+      color:var(--blue);
+
+      font-size:9px;
+      font-weight:900;
+    }
+
+    .history {
+      display:grid;
+      gap:9px;
+    }
+
+    .history-row {
+      display:grid;
+      grid-template-columns:115px minmax(0,1fr) auto;
+      gap:14px;
+      align-items:center;
+
+      padding:13px;
+
+      border:1px solid var(--border);
+      border-radius:12px;
+
+      background:#fbfcfe;
+
+      cursor:pointer;
+
+      transition:.13s;
+    }
+
+    .history-row:hover {
+      border-color:#c3cbed;
+      background:#fafbff;
+    }
+
+    .history-date {
+      font-size:10px;
+      font-weight:900;
+    }
+
+    .history-title {
+      font-size:12px;
+      font-weight:900;
+      line-height:1.4;
+    }
+
+    .history-sub {
+      margin-top:4px;
+
+      color:var(--muted);
+
+      font-size:9px;
+      line-height:1.45;
+    }
+
+    /* ============================================================
+       BADGES
+       ============================================================ */
+
+    .badge {
+      display:inline-flex;
+      align-items:center;
+
+      padding:5px 8px;
+
+      border-radius:999px;
+
+      font-size:8px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .badge-blue {
+      background:var(--blue3);
+      color:var(--blue);
+    }
+
+    .badge-green {
+      background:var(--greenbg);
+      color:var(--green);
+    }
+
+    .badge-yellow {
+      background:var(--yellowbg);
+      color:var(--yellow);
+    }
+
+    .badge-red {
+      background:var(--redbg);
+      color:var(--red);
+    }
+
+    /* ============================================================
+       MODAL
+       ============================================================ */
+
+    .modal {
+      position:fixed;
+      inset:0;
+      z-index:100;
+
+      display:none;
+      align-items:center;
+      justify-content:center;
+
+      padding:20px;
+
+      background:rgba(18,24,38,.47);
+    }
+
+    .modal.show {
+      display:flex;
+    }
+
+    .modal-card {
+      width:min(720px,100%);
+      max-height:92vh;
+
+      overflow:auto;
+
+      padding:21px;
+
+      border-radius:19px;
+
+      background:#fff;
+
+      box-shadow:
+        0 25px 80px rgba(0,0,0,.24);
+    }
+
+    .modal-title {
+      font-size:20px;
+      font-weight:900;
+      line-height:1.3;
+    }
+
+    .modal-subtitle {
+      margin-top:5px;
+
+      color:var(--muted);
+
+      font-size:10px;
+      line-height:1.45;
+    }
+
+    .detail-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:9px;
+
+      margin-top:17px;
+    }
+
+    .detail-field {
+      padding:11px;
+
+      border-radius:10px;
+
+      background:#f7f8fc;
+    }
+
+    .detail-field.full {
+      grid-column:1 / -1;
+    }
+
+    .detail-label {
+      color:var(--muted);
+
+      font-size:8px;
+      font-weight:900;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+
+    .detail-value {
+      margin-top:5px;
+
+      font-size:11px;
+      font-weight:800;
+      line-height:1.5;
+
+      overflow-wrap:anywhere;
+    }
+
+    .modal-actions {
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      flex-wrap:wrap;
+
+      margin-top:17px;
+    }
+
+    /* ============================================================
+       LOADING
+       ============================================================ */
+
+    .loading {
+      position:fixed;
+      inset:0;
+      z-index:500;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      background:rgba(244,246,250,.9);
+
+      backdrop-filter:blur(3px);
+    }
+
+    .loading-card {
+      padding:20px 24px;
+
+      border:1px solid var(--border);
+      border-radius:15px;
+
+      background:#fff;
+
+      box-shadow:var(--shadow);
+
+      text-align:center;
+    }
+
+    .loading-logo {
+      color:var(--blue);
+
+      font-size:23px;
+      font-weight:900;
+    }
+
+    .loading-text {
+      margin-top:6px;
+
+      color:var(--muted);
+
+      font-size:10px;
+    }
+
+    .empty {
+      padding:20px;
+
+      color:var(--muted);
+
+      font-size:11px;
+      line-height:1.5;
+      text-align:center;
+    }
+
+    .toast {
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      z-index:600;
+
+      max-width:420px;
+
+      padding:12px 15px;
+
+      border-radius:10px;
+
+      background:#27334b;
+      color:#fff;
+
+      box-shadow:
+        0 12px 35px rgba(0,0,0,.22);
+
+      font-size:11px;
+
+      opacity:0;
+      transform:translateY(10px);
+
+      pointer-events:none;
+
+      transition:.2s;
+    }
+
+    .toast.show {
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    /* ============================================================
+       MOBIL
+       ============================================================ */
+
+    @media(max-width:1000px) {
+
+      .dashboard {
+        grid-template-columns:1fr;
+      }
+
+      .categories {
+        grid-template-columns:repeat(2,1fr);
+      }
+    }
+
+    @media(max-width:650px) {
+
+      .login-card {
+        padding:27px 19px;
+        border-radius:19px;
+      }
+
+      .login-fire {
+        width:60px;
+        height:60px;
+        border-radius:17px;
+        font-size:27px;
+      }
+
+      .login-title {
+        font-size:24px;
+      }
+
+      .topbar {
+        padding:12px 13px;
+      }
+
+      .brand-small {
+        font-size:8px;
+      }
+
+      .brand-title {
+        font-size:19px;
+      }
+
+      .top-right {
+        gap:5px;
+      }
+
+      #updateStatus,
+      #vbPill {
+        display:none;
+      }
+
+      .logout-button {
+        padding:7px 9px;
+        font-size:9px;
+      }
+
+      .page,
+      .object-page {
+        padding:10px 9px 70px;
+      }
+
+      .hero {
+        padding:18px 14px;
+        border-radius:15px;
+      }
+
+      .hero-title {
+        font-size:22px;
+      }
+
+      .hero-text {
+        font-size:11px;
+      }
+
+      .search-input {
+        min-height:55px;
+
+        padding:13px 47px 13px 44px;
+
+        border-radius:13px;
+
+        font-size:16px;
+      }
+
+      .search-icon {
+        left:14px;
+      }
+
+      .card,
+      .section {
+        border-radius:13px;
+      }
+
+      .section-head {
+        align-items:flex-start;
+      }
+
+      .section-body {
+        padding:12px;
+      }
+
+      .categories {
+        grid-template-columns:1fr 1fr;
+      }
+
+      .object-header {
+        padding:18px 15px;
+        border-radius:15px;
+      }
+
+      .object-title {
+        font-size:21px;
+      }
+
+      .history-row {
+        grid-template-columns:1fr;
+        gap:7px;
+      }
+
+      .history-row .badge {
+        justify-self:start;
+      }
+
+      .modal {
+        padding:0;
+        align-items:stretch;
+        background:#fff;
+      }
+
+      .modal-card {
+        width:100%;
+        height:100dvh;
+        max-width:none;
+        max-height:100dvh;
+
+        padding:17px 13px 90px;
+
+        border-radius:0;
+
+        box-shadow:none;
+      }
+
+      .detail-grid {
+        grid-template-columns:1fr;
+      }
+
+      .detail-field.full {
+        grid-column:1;
+      }
+
+      .modal-actions {
+        display:grid;
+        grid-template-columns:1fr 1fr;
+      }
+
+      .modal-actions .btn {
+        width:100%;
+        min-height:46px;
+      }
+    }
+
+    /* ============================================================
+       V2 – FILTER / SCHNELLZUGRIFF / TERMINE
+       ============================================================ */
+    .filter-toggle-row {
+      display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;
+    }
+    .filter-panel {
+      display:none; margin-top:10px; padding:14px;
+      border:1px solid var(--border); border-radius:14px; background:#fff;
+    }
+    .filter-panel.show { display:block; }
+    .filter-grid {
+      display:grid; grid-template-columns:1.2fr 1.2fr 1fr 1fr auto; gap:9px; align-items:end;
+    }
+    .filter-field label {
+      display:block; margin:0 0 5px 2px; color:var(--muted);
+      font-size:8px; font-weight:900; text-transform:uppercase; letter-spacing:.05em;
+    }
+    .filter-control {
+      width:100%; min-height:42px; padding:8px 10px;
+      border:1px solid var(--border); border-radius:10px; background:#fff; color:var(--text);
+      outline:none; font-size:11px; font-weight:700;
+    }
+    .filter-control:focus { border-color:#aeb9e5; }
+    .quick-grid {
+      display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:20px;
+    }
+    .quick-head {
+      display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;
+    }
+    .quick-title { font-size:12px; font-weight:900; }
+    .quick-link {
+      border:0; background:transparent; color:var(--blue); font-size:9px; font-weight:900; padding:4px;
+    }
+    .recent-empty { color:var(--muted); font-size:10px; padding:12px 4px; }
+    .appointments-page {
+      width:100%; max-width:1100px; margin:0 auto; padding:24px;
+    }
+    .appointment-row {
+      display:grid; grid-template-columns:150px minmax(0,1fr) auto; gap:14px; align-items:center;
+      padding:13px; border:1px solid var(--border); border-radius:12px; background:#fbfcfe;
+      cursor:pointer; margin-bottom:8px;
+    }
+    .appointment-row:hover { border-color:#c3cbed; background:#fafbff; }
+    .appointment-date { font-size:11px; font-weight:900; color:var(--blue2); }
+    .active-filter {
+      background:var(--blue3) !important; color:var(--blue) !important; border-color:#c9d1ef !important;
+    }
+    @media(max-width:850px) {
+      .filter-grid { grid-template-columns:1fr 1fr; }
+      .filter-actions { grid-column:1/-1; }
+    }
+    @media(max-width:650px) {
+      .quick-grid { grid-template-columns:1fr; gap:10px; }
+      .filter-grid { grid-template-columns:1fr; }
+      .filter-actions { grid-column:1; }
+      .appointments-page { padding:10px 9px 70px; }
+      .appointment-row { grid-template-columns:1fr; gap:6px; }
+      .filter-panel { padding:10px; }
+    }
+
   </style>
 </head>
 
+
 <body>
 
-  <div class="start">
-    <img src="./icon-512.png" class="logo" alt="VB Behördenpost">
-    <div class="title">VB Behördenpost</div>
-    <div class="text">Wird geöffnet …</div>
+  <!-- ==========================================================
+       LOGIN
+       ========================================================== -->
+
+  <div id="loginView">
+
+    <div class="login-card">
+
+      <div class="login-brand">
+
+        <div class="login-fire">
+          🔥
+        </div>
+
+        <div class="login-small">
+          FEUERWEHR ST. PÖLTEN-STADT
+        </div>
+
+        <div class="login-title">
+          VB Behördenpost
+        </div>
+
+        <div class="login-subtitle">
+          Interner Zugriff auf das Posteingangsbuch
+          des Vorbeugenden Brandschutzes.
+        </div>
+
+      </div>
+
+
+      <form
+        class="login-form"
+        onsubmit="login(event)"
+      >
+
+        <label
+          class="login-label"
+          for="loginCode"
+        >
+          Zugangscode
+        </label>
+
+        <input
+          id="loginCode"
+          class="code-input"
+          type="password"
+          autocomplete="off"
+          autocapitalize="characters"
+          spellcheck="false"
+          placeholder="••••••"
+        >
+
+        <button
+          id="loginButton"
+          class="login-button"
+          type="submit"
+        >
+          Anmelden
+        </button>
+
+        <div
+          id="loginError"
+          class="login-error"
+        >
+          Zugangscode nicht korrekt.
+        </div>
+
+      </form>
+
+
+      <div class="login-footer">
+        Nur für den internen Dienstgebrauch.
+      </div>
+
+    </div>
+
   </div>
 
-  <script>
-    const APP_URL =
-      "https://script.google.com/macros/s/AKfycbz5cJuK3AccClgXpPnsw1rVeJ7FX2vZ9kU2BRs06Z6x7ZM1o-xbY6FKadwlNYbkPIEI/exec";
 
-    setTimeout(function () {
-      window.location.replace(APP_URL);
-    }, 500);
+
+  <!-- ==========================================================
+       APP
+       ========================================================== -->
+
+  <div
+    id="appView"
+    class="hidden"
+  >
+
+    <header class="topbar">
+
+      <div>
+
+        <div class="brand-small">
+          FEUERWEHR ST. PÖLTEN-STADT
+        </div>
+
+        <div class="brand-title">
+          VB Behördenpost
+        </div>
+
+      </div>
+
+
+      <div class="top-right">
+
+        <div
+          id="vbPill"
+          class="top-pill"
+        >
+          Vorbeugender Brandschutz
+        </div>
+
+        <div
+          id="updateStatus"
+          class="top-pill"
+        >
+          wird geladen …
+        </div>
+
+        <button
+          type="button"
+          class="top-pill logout-button"
+          onclick="logout()"
+        >
+          Abmelden
+        </button>
+
+      </div>
+
+    </header>
+
+
+
+    <!-- STARTSEITE -->
+
+    <main
+      id="homeView"
+      class="page"
+    >
+
+      <section class="hero">
+
+        <h1 class="hero-title">
+          Behördenpost durchsuchen
+        </h1>
+
+        <div class="hero-text">
+          Schneller Zugriff auf Bescheide, Ladungen,
+          Überprüfungen und weitere Behördenpost.
+        </div>
+
+
+        <div class="search-area">
+
+          <div class="search-box">
+
+            <span class="search-icon">
+              🔎
+            </span>
+
+            <input
+              id="searchInput"
+              class="search-input"
+              type="search"
+              autocomplete="off"
+              autocorrect="off"
+              spellcheck="false"
+              placeholder="Objekt, Firma, Adresse, Aktenzahl …"
+            >
+
+            <button
+              id="clearButton"
+              class="clear-search"
+              type="button"
+              onclick="clearSearch()"
+            >
+              ×
+            </button>
+
+          </div>
+
+
+          <div class="search-help">
+            Suche nach Objekt/Firma, Adresse,
+            Aktenzahl, Betreff, Behörde oder Vorgangsnummer.
+          </div>
+
+          <div class="filter-toggle-row">
+            <button id="filterToggle" type="button" class="btn btn-outline" onclick="toggleFilters()">
+              🎛️ Filter
+            </button>
+            <button type="button" class="btn btn-outline" onclick="showAllAppointments()">
+              📅 Alle Termine
+            </button>
+          </div>
+
+          <div id="filterPanel" class="filter-panel">
+            <div class="filter-grid">
+              <div class="filter-field">
+                <label for="filterKategorie">Kategorie</label>
+                <select id="filterKategorie" class="filter-control" onchange="filterChanged()">
+                  <option value="">Alle Kategorien</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <label for="filterBehoerde">Behörde</label>
+                <select id="filterBehoerde" class="filter-control" onchange="filterChanged()">
+                  <option value="">Alle Behörden</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <label for="filterVon">Von</label>
+                <input id="filterVon" class="filter-control" type="date" onchange="filterChanged()">
+              </div>
+              <div class="filter-field">
+                <label for="filterBis">Bis</label>
+                <input id="filterBis" class="filter-control" type="date" onchange="filterChanged()">
+              </div>
+              <div class="filter-actions">
+                <button type="button" class="btn btn-light" onclick="resetFilters()">✕ Zurücksetzen</button>
+              </div>
+            </div>
+          </div>
+
+
+          <div
+            id="searchResults"
+            class="search-results"
+          >
+
+            <div class="results-head">
+
+              <span>
+                Suchergebnisse
+              </span>
+
+              <span id="resultCount"></span>
+
+            </div>
+
+
+            <div
+              id="resultsList"
+              class="results-list"
+            ></div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+
+      <section class="quick-grid">
+        <div class="card">
+          <div class="quick-head">
+            <div class="quick-title">🕘 Zuletzt angesehen</div>
+            <button type="button" class="quick-link" onclick="clearRecent()">Leeren</button>
+          </div>
+          <div id="recentList" class="mini-list">
+            <div class="recent-empty">Noch keine Objektakte angesehen.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="quick-head">
+            <div class="quick-title">⚡ Schnellzugriff</div>
+          </div>
+          <div class="mini-list">
+            <div class="mini-item" onclick="focusSearch()">
+              <div class="mini-title">🔎 Neue Suche</div>
+              <div class="mini-sub">Objekt, Adresse oder Aktenzahl suchen</div>
+            </div>
+            <div class="mini-item" onclick="showAllAppointments()">
+              <div class="mini-title">📅 Alle anstehenden Termine</div>
+              <div class="mini-sub">Gesamte Terminliste öffnen</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard">
+
+        <div class="card">
+
+          <div class="card-heading">
+            📚 Posteingangsbuch
+          </div>
+
+          <div
+            id="totalCount"
+            class="total-number"
+          >
+            –
+          </div>
+
+          <div class="total-label">
+            erfasste Vorgänge im
+            VB Behördenpost-System
+          </div>
+
+
+          <div class="stats">
+
+            <div class="stat">
+
+              <strong id="categoryCount">
+                –
+              </strong>
+
+              <span>
+                Kategorien
+              </span>
+
+            </div>
+
+
+            <div class="stat">
+
+              <strong id="appointmentCount">
+                –
+              </strong>
+
+              <span>
+                Termine
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="card">
+
+          <div class="card-heading">
+            📥 Letzte Eingänge
+          </div>
+
+          <div
+            id="latestList"
+            class="mini-list"
+          >
+            <div class="empty">
+              Wird geladen …
+            </div>
+          </div>
+
+        </div>
+
+
+
+        <div class="card">
+
+          <div class="card-heading">
+            📅 Anstehende Termine
+          </div>
+
+          <div
+            id="appointmentList"
+            class="mini-list"
+          >
+            <div class="empty">
+              Wird geladen …
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <section class="section">
+
+        <div class="section-head">
+
+          <div>
+
+            <div class="section-title">
+              Behördenpost im Überblick
+            </div>
+
+            <div class="section-subtitle">
+              Aktueller Stand des Posteingangsbuchs.
+            </div>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="btn btn-outline"
+            onclick="loadDashboard()"
+          >
+            ↻ Aktualisieren
+          </button>
+
+        </div>
+
+
+        <div class="section-body">
+
+          <div
+            id="categories"
+            class="categories"
+          >
+            <div
+              class="empty"
+              style="grid-column:1/-1"
+            >
+              Wird geladen …
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+
+
+    <!-- OBJEKTAKTE -->
+
+    <main
+      id="objectView"
+      class="object-page hidden"
+    >
+
+      <button
+        type="button"
+        class="back-button"
+        onclick="backHome()"
+      >
+        ← Zurück zur Suche
+      </button>
+
+
+      <section class="object-header">
+
+        <div class="object-eyebrow">
+          VB Objektakte
+        </div>
+
+        <div
+          id="objectTitle"
+          class="object-title"
+        ></div>
+
+        <div
+          id="objectAddress"
+          class="object-address"
+        ></div>
+
+        <div
+          id="objectCount"
+          class="object-count"
+        ></div>
+
+      </section>
+
+
+      <section class="section">
+
+        <div class="section-head">
+
+          <div>
+
+            <div class="section-title">
+              Vorgänge
+            </div>
+
+            <div class="section-subtitle">
+              Behördenpost zu diesem Objekt.
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="section-body">
+
+          <div
+            id="historyList"
+            class="history"
+          ></div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- ALLE TERMINE -->
+    <main id="appointmentsView" class="appointments-page hidden">
+      <button type="button" class="back-button" onclick="backFromAppointments()">
+        ← Zurück zur Übersicht
+      </button>
+
+      <section class="object-header">
+        <div class="object-eyebrow">VB Behördenpost</div>
+        <div class="object-title">Anstehende Termine</div>
+        <div class="object-address">Alle zukünftigen Termine aus dem Posteingangsbuch.</div>
+        <div id="allAppointmentsCount" class="object-count">wird geladen …</div>
+      </section>
+
+      <section class="section">
+        <div class="section-body">
+          <div id="allAppointmentsList">
+            <div class="empty">Termine werden geladen …</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+  </div>
+
+
+
+  <!-- ==========================================================
+       DETAIL MODAL
+       ========================================================== -->
+
+  <div
+    id="detailModal"
+    class="modal"
+  >
+
+    <div class="modal-card">
+
+      <div
+        id="detailTitle"
+        class="modal-title"
+      >
+        Vorgang
+      </div>
+
+      <div
+        id="detailSubtitle"
+        class="modal-subtitle"
+      ></div>
+
+
+      <div
+        id="detailGrid"
+        class="detail-grid"
+      ></div>
+
+
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          class="btn btn-light"
+          onclick="closeDetail()"
+        >
+          Schließen
+        </button>
+
+        <button
+          id="openDocumentButton"
+          type="button"
+          class="btn btn-primary hidden"
+          onclick="openDocument()"
+        >
+          📄 Dokument öffnen
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- LOADING -->
+
+  <div
+    id="loading"
+    class="loading hidden"
+  >
+
+    <div class="loading-card">
+
+      <div class="loading-logo">
+        VB Behördenpost
+      </div>
+
+      <div class="loading-text">
+        Daten werden geladen …
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div
+    id="toast"
+    class="toast"
+  ></div>
+
+
+
+  <script>
+
+    const LOGIN_STORAGE_KEY =
+      'vb_behoerdenpost_login_v1';
+
+    const TOKEN_STORAGE_KEY =
+      'vb_behoerdenpost_api_token_v1';
+
+    const API_URL =
+      'https://script.google.com/macros/s/AKfycbz5cJuK3AccClgXpPnsw1rVeJ7FX2vZ9kU2BRs06Z6x7ZM1o-xbY6FKadwlNYbkPIEI/exec';
+
+    let API_TOKEN = '';
+    let API_COUNTER = 0;
+
+    let APP_DATA = null;
+    let SEARCH_TIMER = null;
+    let SEARCH_SEQUENCE = 0;
+    let CURRENT_DETAIL = null;
+    let APP_STARTED = false;
+    let FILTER_DATA = null;
+    const RECENT_STORAGE_KEY = 'vb_behoerdenpost_recent_v2';
+
+
+
+    /* ============================================================
+       GITHUB-PWA API / JSONP
+       ============================================================ */
+
+    function apiCall(action, params) {
+      return new Promise(function(resolve, reject) {
+        params = params || {};
+        const callbackName = '__vbApiCb_' + Date.now() + '_' + (++API_COUNTER);
+        const script = document.createElement('script');
+        let done = false;
+
+        function cleanup() {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+          if (script.parentNode) script.parentNode.removeChild(script);
+        }
+
+        window[callbackName] = function(data) {
+          cleanup();
+          if (data && data.auth === false && action !== 'login') {
+            clearApiSession();
+            showLogin();
+            reject(new Error('Sitzung abgelaufen. Bitte erneut anmelden.'));
+            return;
+          }
+          resolve(data);
+        };
+
+        const query = new URLSearchParams();
+        query.set('api', '1');
+        query.set('action', action);
+        query.set('callback', callbackName);
+        if (action !== 'login' && API_TOKEN) query.set('token', API_TOKEN);
+        Object.keys(params).forEach(function(key) {
+          const value = params[key];
+          if (value !== undefined && value !== null) query.set(key, String(value));
+        });
+
+        script.src = API_URL + '?' + query.toString();
+        script.async = true;
+        script.onerror = function() {
+          cleanup();
+          reject(new Error('Verbindung zum Behördenpost-Server fehlgeschlagen.'));
+        };
+        const timer = setTimeout(function() {
+          cleanup();
+          reject(new Error('Zeitüberschreitung beim Laden der Daten.'));
+        }, 20000);
+        document.head.appendChild(script);
+      });
+    }
+
+    function saveApiSession(token) {
+      API_TOKEN = token || '';
+      try {
+        if (API_TOKEN) {
+          localStorage.setItem(TOKEN_STORAGE_KEY, API_TOKEN);
+          localStorage.setItem(LOGIN_STORAGE_KEY, '1');
+        }
+      } catch (e) { console.warn(e); }
+    }
+
+    function clearApiSession() {
+      API_TOKEN = '';
+      try {
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        localStorage.removeItem(LOGIN_STORAGE_KEY);
+      } catch (e) { console.warn(e); }
+    }
+
+
+    /* ============================================================
+       START
+       ============================================================ */
+
+    window.addEventListener(
+      'DOMContentLoaded',
+      function () {
+
+        const search =
+          document.getElementById(
+            'searchInput'
+          );
+
+
+        search.addEventListener(
+          'input',
+          searchInputChanged
+        );
+
+
+        search.addEventListener(
+          'keydown',
+          function (event) {
+
+            if (
+              event.key === 'Escape'
+            ) {
+              clearSearch();
+            }
+          }
+        );
+
+
+        document
+          .getElementById(
+            'detailModal'
+          )
+          .addEventListener(
+            'click',
+            function (event) {
+
+              if (
+                event.target.id ===
+                'detailModal'
+              ) {
+                closeDetail();
+              }
+            }
+          );
+
+
+        checkSavedLogin();
+      }
+    );
+
+
+
+    /* ============================================================
+       LOGIN
+       ============================================================ */
+
+    function checkSavedLogin() {
+
+      try {
+        API_TOKEN = localStorage.getItem(TOKEN_STORAGE_KEY) || '';
+      } catch (error) {
+        console.warn('LocalStorage nicht verfügbar.', error);
+        API_TOKEN = '';
+      }
+
+      if (!API_TOKEN) {
+        showLogin();
+        return;
+      }
+
+      setLoading(true);
+
+      apiCall('bootstrap')
+        .then(function(data) {
+          if (!data || data.ok === false) throw new Error('Sitzung ungültig.');
+          APP_DATA = data || {};
+          document.getElementById('loginView').classList.add('hidden');
+          document.getElementById('appView').classList.remove('hidden');
+          APP_STARTED = true;
+          renderDashboard();
+          loadFilterData();
+          renderRecent();
+          setLoading(false);
+        })
+        .catch(function() {
+          setLoading(false);
+          clearApiSession();
+          showLogin();
+        });
+    }
+
+
+
+    function login(event) {
+
+      event.preventDefault();
+
+      const input = document.getElementById('loginCode');
+      const button = document.getElementById('loginButton');
+      const errorBox = document.getElementById('loginError');
+      const code = input.value.trim();
+
+      errorBox.style.display = 'none';
+
+      if (!code) {
+        errorBox.textContent = 'Bitte Zugangscode eingeben.';
+        errorBox.style.display = 'block';
+        input.focus();
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = 'Wird geprüft …';
+
+      apiCall('login', {code:code})
+        .then(function(result) {
+          button.disabled = false;
+          button.textContent = 'Anmelden';
+
+          if (result && result.ok && result.token) {
+            saveApiSession(result.token);
+            input.value = '';
+            APP_STARTED = false;
+            showApp();
+            return;
+          }
+
+          errorBox.textContent = 'Zugangscode nicht korrekt.';
+          errorBox.style.display = 'block';
+          input.value = '';
+          input.focus();
+        })
+        .catch(function(error) {
+          button.disabled = false;
+          button.textContent = 'Anmelden';
+          errorBox.textContent = 'Anmeldung konnte nicht geprüft werden.';
+          errorBox.style.display = 'block';
+          console.error(error);
+        });
+    }
+
+
+
+    function showLogin() {
+
+      document
+        .getElementById(
+          'appView'
+        )
+        .classList.add(
+          'hidden'
+        );
+
+
+      document
+        .getElementById(
+          'loginView'
+        )
+        .classList.remove(
+          'hidden'
+        );
+
+
+      setTimeout(
+        function () {
+
+          document
+            .getElementById(
+              'loginCode'
+            )
+            .focus();
+
+        },
+        150
+      );
+    }
+
+
+
+    function showApp() {
+
+      document
+        .getElementById(
+          'loginView'
+        )
+        .classList.add(
+          'hidden'
+        );
+
+
+      document
+        .getElementById(
+          'appView'
+        )
+        .classList.remove(
+          'hidden'
+        );
+
+
+      if (!APP_STARTED) {
+
+        APP_STARTED = true;
+
+        loadDashboard();
+        loadFilterData();
+        renderRecent();
+      }
+    }
+
+
+
+    function logout() {
+
+      clearApiSession();
+
+      try {
+
+        localStorage.removeItem(
+          LOGIN_STORAGE_KEY
+        );
+
+      } catch (error) {
+
+        console.warn(
+          error
+        );
+      }
+
+
+      APP_STARTED = false;
+      APP_DATA = null;
+
+      closeDetail();
+      backHome();
+
+      showLogin();
+    }
+
+
+
+    /* ============================================================
+       DASHBOARD
+       ============================================================ */
+
+    function loadDashboard() {
+
+      setLoading(true);
+
+      apiCall('bootstrap')
+        .then(function(data) {
+          APP_DATA = data || {};
+          renderDashboard();
+          setLoading(false);
+        })
+        .catch(handleError);
+    }
+
+
+
+    function renderDashboard() {
+
+      const data =
+        APP_DATA || {};
+
+
+      document.getElementById(
+        'totalCount'
+      ).textContent =
+        Number(
+          data.count || 0
+        );
+
+
+      const categories =
+        data.kategorien || {};
+
+
+      document.getElementById(
+        'categoryCount'
+      ).textContent =
+        Object.keys(
+          categories
+        ).length;
+
+
+      document.getElementById(
+        'appointmentCount'
+      ).textContent =
+        (
+          data.termine || []
+        ).length;
+
+
+      document.getElementById(
+        'updateStatus'
+      ).textContent =
+        data.generatedAt
+          ? 'Stand ' +
+            data.generatedAt
+          : 'aktuell';
+
+
+      renderLatest(
+        data.letzte || []
+      );
+
+
+      renderAppointments(
+        data.termine || []
+      );
+
+
+      renderCategories(
+        categories
+      );
+    }
+
+
+
+    function renderLatest(rows) {
+
+      const root =
+        document.getElementById(
+          'latestList'
+        );
+
+
+      if (!rows.length) {
+
+        root.innerHTML =
+          '<div class="empty">' +
+          'Keine Vorgänge vorhanden.' +
+          '</div>';
+
+        return;
+      }
+
+
+      root.innerHTML =
+        rows
+          .slice(0,5)
+          .map(
+            function (row) {
+
+              const title =
+                row.objekt ||
+                row.adresse ||
+                row.betreff ||
+                row.vorgang ||
+                'Vorgang';
+
+
+              const meta =
+                [
+                  row.eingang,
+                  row.kategorie
+                ]
+                  .filter(Boolean)
+                  .join(' · ');
+
+
+              return `
+                <div
+                  class="mini-item"
+                  data-row="${encodeRow(row)}"
+                  onclick="openObjectFromElement(this)"
+                >
+
+                  <div class="mini-title">
+                    ${escapeHtml(title)}
+                  </div>
+
+                  <div class="mini-sub">
+                    ${escapeHtml(meta)}
+                  </div>
+
+                </div>
+              `;
+            }
+          )
+          .join('');
+    }
+
+
+
+    function renderAppointments(rows) {
+
+      const root =
+        document.getElementById(
+          'appointmentList'
+        );
+
+
+      if (!rows.length) {
+
+        root.innerHTML =
+          '<div class="empty">' +
+          'Keine zukünftigen Termine vorhanden.' +
+          '</div>';
+
+        return;
+      }
+
+
+      root.innerHTML =
+        rows
+          .slice(0,5)
+          .map(
+            function (row) {
+
+              const termin =
+                buildAppointment(
+                  row
+                );
+
+
+              const title =
+                row.objekt ||
+                row.adresse ||
+                row.betreff ||
+                'Vorgang';
+
+
+              return `
+                <div
+                  class="mini-item"
+                  data-row="${encodeRow(row)}"
+                  onclick="openDetailFromElement(this)"
+                >
+
+                  <div class="mini-title">
+                    ${escapeHtml(termin)}
+                  </div>
+
+                  <div class="mini-sub">
+                    ${escapeHtml(title)}
+                  </div>
+
+                </div>
+              `;
+            }
+          )
+          .join('');
+    }
+
+
+
+    function renderCategories(categories) {
+
+      const root =
+        document.getElementById(
+          'categories'
+        );
+
+
+      const rows =
+        Object.keys(
+          categories || {}
+        )
+          .map(
+            function (name) {
+
+              return {
+                name:name,
+                count:Number(
+                  categories[name] || 0
+                )
+              };
+            }
+          )
+          .sort(
+            function (a,b) {
+
+              return (
+                b.count -
+                a.count
+              );
+            }
+          );
+
+
+      if (!rows.length) {
+
+        root.innerHTML =
+          '<div class="empty" style="grid-column:1/-1">' +
+          'Keine Kategorien vorhanden.' +
+          '</div>';
+
+        return;
+      }
+
+
+      root.innerHTML =
+        rows
+          .map(
+            function (item) {
+
+              return `
+                <div class="category-card">
+
+                  <div class="category-number">
+                    ${item.count}
+                  </div>
+
+                  <div class="category-name">
+                    ${escapeHtml(item.name)}
+                  </div>
+
+                </div>
+              `;
+            }
+          )
+          .join('');
+    }
+
+
+
+    /* ============================================================
+       SUCHE
+       ============================================================ */
+
+    function searchInputChanged() {
+      const input = document.getElementById('searchInput');
+      const query = input.value.trim();
+
+      document.getElementById('clearButton').style.display =
+        query ? 'block' : 'none';
+
+      clearTimeout(SEARCH_TIMER);
+
+      if (query.length < 2 && !hasActiveFilters()) {
+        hideSearchResults();
+        return;
+      }
+
+      SEARCH_TIMER = setTimeout(function () {
+        runSearchV2();
+      }, 220);
+    }
+
+
+    function runSearchV2() {
+      const sequence = ++SEARCH_SEQUENCE;
+      const query = document.getElementById('searchInput').value.trim();
+      const results = document.getElementById('searchResults');
+      const list = document.getElementById('resultsList');
+      const count = document.getElementById('resultCount');
+
+      if (query.length < 2 && !hasActiveFilters()) {
+        hideSearchResults();
+        return;
+      }
+
+      results.classList.add('show');
+      count.textContent = 'Suche …';
+      list.innerHTML = '<div class="empty">Treffer werden gesucht …</div>';
+
+      const filter = {
+        query: query,
+        kategorie: document.getElementById('filterKategorie').value,
+        behoerde: document.getElementById('filterBehoerde').value,
+        von: document.getElementById('filterVon').value,
+        bis: document.getElementById('filterBis').value
+      };
+
+      apiCall('suche', filter)
+        .then(function(result) {
+          if (sequence !== SEARCH_SEQUENCE) return;
+          renderSearchResults((result && result.rows) || []);
+          document.getElementById('resultCount').textContent =
+            Number((result && result.count) || 0) + ' Treffer';
+        })
+        .catch(handleError);
+    }
+
+
+    function runSearch(query) {
+      if (typeof query === 'string') {
+        document.getElementById('searchInput').value = query;
+      }
+      runSearchV2();
+    }
+
+
+    function renderSearchResults(rows) {
+
+      const root =
+        document.getElementById(
+          'resultsList'
+        );
+
+
+      document.getElementById(
+        'resultCount'
+      ).textContent =
+        rows.length +
+        ' Treffer';
+
+
+      if (!rows.length) {
+
+        root.innerHTML =
+          '<div class="empty">' +
+          'Keine passende Behördenpost gefunden.' +
+          '</div>';
+
+        return;
+      }
+
+
+      root.innerHTML =
+        rows
+          .map(
+            function (row) {
+
+              const title =
+                row.objekt ||
+                row.adresse ||
+                row.betreff ||
+                row.vorgang ||
+                'Vorgang';
+
+
+              const address =
+                row.objekt &&
+                row.adresse
+                  ? row.adresse
+                  : '';
+
+
+              const meta =
+                [
+                  row.kategorie,
+
+                  row.aktenzahl
+                    ? 'AZ ' +
+                      row.aktenzahl
+                    : '',
+
+                  row.eingang
+                ]
+                  .filter(Boolean)
+                  .join(' · ');
+
+
+              return `
+                <div
+                  class="result-row"
+                  data-row="${encodeRow(row)}"
+                  onclick="openObjectFromElement(this)"
+                >
+
+                  <div>
+
+                    <div class="result-title">
+                      ${escapeHtml(title)}
+                    </div>
+
+                    ${
+                      address
+                        ? `
+                          <div class="result-address">
+                            ${escapeHtml(address)}
+                          </div>
+                        `
+                        : ''
+                    }
+
+                    <div class="result-meta">
+                      ${escapeHtml(meta)}
+                    </div>
+
+                  </div>
+
+                  <div class="result-arrow">
+                    ›
+                  </div>
+
+                </div>
+              `;
+            }
+          )
+          .join('');
+    }
+
+
+
+    function clearSearch() {
+
+      SEARCH_SEQUENCE++;
+
+
+      const input =
+        document.getElementById(
+          'searchInput'
+        );
+
+
+      input.value = '';
+
+
+      document.getElementById(
+        'clearButton'
+      ).style.display =
+        'none';
+
+
+      if (hasActiveFilters()) {
+        runSearchV2();
+      } else {
+        hideSearchResults();
+      }
+
+      input.focus();
+    }
+
+
+
+    function hideSearchResults() {
+
+      document
+        .getElementById(
+          'searchResults'
+        )
+        .classList.remove(
+          'show'
+        );
+    }
+
+
+
+    /* ============================================================
+       ELEMENT → DATEN
+       ============================================================ */
+
+    function openObjectFromElement(element) {
+
+      const row =
+        decodeRow(
+          element.dataset.row
+        );
+
+
+      openObject(
+        row
+      );
+    }
+
+
+
+    function openDetailFromElement(element) {
+
+      const row =
+        decodeRow(
+          element.dataset.row
+        );
+
+
+      openDetail(
+        row
+      );
+    }
+
+
+
+    /* ============================================================
+       OBJEKTAKTE
+       ============================================================ */
+
+    function openObject(row) {
+
+      if (!row) {
+        return;
+      }
+
+
+      if (
+        !row.objekt &&
+        !row.adresse
+      ) {
+
+        openDetail(
+          row
+        );
+
+        return;
+      }
+
+
+      hideSearchResults();
+
+      saveRecent(row);
+      renderRecent();
+
+      setLoading(true);
+
+
+      apiCall('objektakte', {
+        objekt: row.objekt || '',
+        adresse: row.adresse || ''
+      })
+        .then(function(data) {
+          renderObject(data || {});
+          setLoading(false);
+        })
+        .catch(handleError);
+    }
+
+
+
+    function renderObject(data) {
+
+      document
+        .getElementById(
+          'homeView'
+        )
+        .classList.add(
+          'hidden'
+        );
+
+
+      document
+        .getElementById(
+          'objectView'
+        )
+        .classList.remove(
+          'hidden'
+        );
+
+
+      document.getElementById(
+        'objectTitle'
+      ).textContent =
+        data.objekt ||
+        data.adresse ||
+        'Objekt';
+
+
+      document.getElementById(
+        'objectAddress'
+      ).textContent =
+        data.adresse || '';
+
+
+      const count =
+        Number(
+          data.count || 0
+        );
+
+
+      document.getElementById(
+        'objectCount'
+      ).textContent =
+        count +
+        (
+          count === 1
+            ? ' Vorgang'
+            : ' Vorgänge'
+        );
+
+
+      const root =
+        document.getElementById(
+          'historyList'
+        );
+
+
+      const rows =
+        data.vorgaenge || [];
+
+
+      if (!rows.length) {
+
+        root.innerHTML =
+          '<div class="empty">' +
+          'Keine Vorgänge gefunden.' +
+          '</div>';
+
+      } else {
+
+        root.innerHTML =
+          rows
+            .map(
+              function (row) {
+
+                const title =
+                  row.kategorie ||
+                  row.betreff ||
+                  'Vorgang';
+
+
+                const meta =
+                  [
+                    row.behoerde,
+
+                    row.aktenzahl
+                      ? 'AZ ' +
+                        row.aktenzahl
+                      : '',
+
+                    row.betreff
+                  ]
+                    .filter(Boolean)
+                    .join(' · ');
+
+
+                return `
+                  <div
+                    class="history-row"
+                    data-row="${encodeRow(row)}"
+                    onclick="openDetailFromElement(this)"
+                  >
+
+                    <div class="history-date">
+                      ${escapeHtml(
+                        row.eingang || ''
+                      )}
+                    </div>
+
+                    <div>
+
+                      <div class="history-title">
+                        ${escapeHtml(title)}
+                      </div>
+
+                      <div class="history-sub">
+                        ${escapeHtml(meta)}
+                      </div>
+
+                    </div>
+
+                    ${buildStatusBadge(row)}
+
+                  </div>
+                `;
+              }
+            )
+            .join('');
+      }
+
+
+      window.scrollTo({
+        top:0,
+        behavior:'smooth'
+      });
+    }
+
+
+
+    function backHome() {
+
+      closeDetail();
+
+
+      document
+        .getElementById(
+          'objectView'
+        )
+        .classList.add(
+          'hidden'
+        );
+
+
+      const appointmentsView =
+        document.getElementById('appointmentsView');
+
+      if (appointmentsView) {
+        appointmentsView.classList.add('hidden');
+      }
+
+      document
+        .getElementById(
+          'homeView'
+        )
+        .classList.remove(
+          'hidden'
+        );
+
+
+      window.scrollTo({
+        top:0,
+        behavior:'smooth'
+      });
+    }
+
+
+
+    /* ============================================================
+       DETAIL
+       ============================================================ */
+
+    function openDetail(row) {
+
+      if (!row) {
+        return;
+      }
+
+
+      CURRENT_DETAIL =
+        row;
+
+
+      document.getElementById(
+        'detailTitle'
+      ).textContent =
+        row.kategorie ||
+        row.betreff ||
+        'Vorgang';
+
+
+      document.getElementById(
+        'detailSubtitle'
+      ).textContent =
+        [
+          row.vorgang,
+          row.eingang
+        ]
+          .filter(Boolean)
+          .join(' · ');
+
+
+      const fields = [
+
+        {
+          label:'Objekt / Firma',
+          value:row.objekt,
+          full:true
+        },
+
+        {
+          label:'Adresse',
+          value:row.adresse,
+          full:true
+        },
+
+        {
+          label:'Aktenzahl',
+          value:row.aktenzahl
+        },
+
+        {
+          label:'Behörde',
+          value:row.behoerde
+        },
+
+        {
+          label:'Absender',
+          value:row.absender
+        },
+
+        {
+          label:'Kategorie',
+          value:row.kategorie
+        },
+
+        {
+          label:'Betreff',
+          value:row.betreff,
+          full:true
+        },
+
+        {
+          label:'Termin',
+          value:buildAppointment(row)
+        },
+
+        {
+          label:'Kalenderstatus',
+          value:row.kalenderstatus
+        },
+
+        {
+          label:'Status',
+          value:row.status
+        },
+
+        {
+          label:'Hinweis',
+          value:row.hinweis,
+          full:true
+        },
+
+        {
+          label:'Verarbeitet am',
+          value:row.verarbeitetAm
+        }
+
+      ];
+
+
+      document.getElementById(
+        'detailGrid'
+      ).innerHTML =
+        fields
+          .filter(
+            function (field) {
+
+              return Boolean(
+                field.value
+              );
+            }
+          )
+          .map(
+            function (field) {
+
+              return `
+                <div
+                  class="detail-field
+                  ${field.full ? 'full' : ''}"
+                >
+
+                  <div class="detail-label">
+                    ${escapeHtml(field.label)}
+                  </div>
+
+                  <div class="detail-value">
+                    ${escapeHtml(field.value)}
+                  </div>
+
+                </div>
+              `;
+            }
+          )
+          .join('');
+
+
+      const documentUrl =
+        getDocumentUrl(
+          row
+        );
+
+
+      const button =
+        document.getElementById(
+          'openDocumentButton'
+        );
+
+
+      if (documentUrl) {
+
+        button.classList.remove(
+          'hidden'
+        );
+
+      } else {
+
+        button.classList.add(
+          'hidden'
+        );
+      }
+
+
+      document
+        .getElementById(
+          'detailModal'
+        )
+        .classList.add(
+          'show'
+        );
+    }
+
+
+
+    function closeDetail() {
+
+      document
+        .getElementById(
+          'detailModal'
+        )
+        .classList.remove(
+          'show'
+        );
+
+
+      CURRENT_DETAIL =
+        null;
+    }
+
+
+
+    /* ============================================================
+       TERMIN
+       ============================================================ */
+
+    function buildAppointment(row) {
+
+      if (
+        !row ||
+        !row.terminDatum
+      ) {
+        return '';
+      }
+
+
+      let result =
+        row.terminDatum;
+
+
+      if (
+        row.terminBeginn
+      ) {
+
+        result +=
+          ' · ' +
+          row.terminBeginn +
+          ' Uhr';
+      }
+
+
+      if (
+        row.terminEnde
+      ) {
+
+        result +=
+          ' – ' +
+          row.terminEnde +
+          ' Uhr';
+      }
+
+
+      return result;
+    }
+
+
+
+    /* ============================================================
+       DOKUMENT
+       ============================================================ */
+
+    function getDocumentUrl(row) {
+
+      if (!row) {
+        return '';
+      }
+
+
+      const raw =
+        row.driveArchiv ||
+        row.driveArbeitsordner ||
+        '';
+
+
+      if (!raw) {
+        return '';
+      }
+
+
+      const matches =
+        String(raw).match(
+          /https?:\/\/[^\s]+/g
+        );
+
+
+      return (
+        matches &&
+        matches.length
+      )
+        ? matches[0]
+        : '';
+    }
+
+
+
+    function openDocument() {
+
+      const url =
+        getDocumentUrl(
+          CURRENT_DETAIL
+        );
+
+
+      if (!url) {
+
+        showToast(
+          'Für diesen Vorgang ist kein Dokumentlink vorhanden.'
+        );
+
+        return;
+      }
+
+
+      window.open(
+        url,
+        '_blank',
+        'noopener'
+      );
+    }
+
+
+
+    /* ============================================================
+       STATUS
+       ============================================================ */
+
+    function buildStatusBadge(row) {
+
+      const status =
+        String(
+          row.status || ''
+        ).toUpperCase();
+
+
+      if (
+        status.includes(
+          'MANUELL'
+        )
+      ) {
+
+        return `
+          <span class="badge badge-yellow">
+            MANUELL
+          </span>
+        `;
+      }
+
+
+      if (
+        status.includes(
+          'FEHLER'
+        )
+      ) {
+
+        return `
+          <span class="badge badge-red">
+            FEHLER
+          </span>
+        `;
+      }
+
+
+      if (
+        status === 'OK'
+      ) {
+
+        return `
+          <span class="badge badge-green">
+            OK
+          </span>
+        `;
+      }
+
+
+      return `
+        <span class="badge badge-blue">
+          ${escapeHtml(
+            row.kategorie ||
+            'VORGANG'
+          )}
+        </span>
+      `;
+    }
+
+
+
+
+    /* ============================================================
+       V2 – FILTER
+       ============================================================ */
+
+    function loadFilterData() {
+      apiCall('filterdaten')
+        .then(function(data) {
+          FILTER_DATA = data || {};
+          fillSelect('filterKategorie', FILTER_DATA.kategorien || [], 'Alle Kategorien');
+          fillSelect('filterBehoerde', FILTER_DATA.behoerden || [], 'Alle Behörden');
+        })
+        .catch(function(error) {
+          console.error('Filterdaten:', error);
+        });
+    }
+
+    function fillSelect(id, values, emptyText) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.innerHTML =
+        '<option value="">' + escapeHtml(emptyText) + '</option>' +
+        values.map(function (value) {
+          return '<option value="' + escapeHtml(value) + '">' +
+            escapeHtml(value) + '</option>';
+        }).join('');
+    }
+
+    function toggleFilters() {
+      const panel = document.getElementById('filterPanel');
+      panel.classList.toggle('show');
+    }
+
+    function hasActiveFilters() {
+      return Boolean(
+        document.getElementById('filterKategorie').value ||
+        document.getElementById('filterBehoerde').value ||
+        document.getElementById('filterVon').value ||
+        document.getElementById('filterBis').value
+      );
+    }
+
+    function filterChanged() {
+      const button = document.getElementById('filterToggle');
+      button.classList.toggle('active-filter', hasActiveFilters());
+
+      const query = document.getElementById('searchInput').value.trim();
+      if (query.length >= 2 || hasActiveFilters()) {
+        clearTimeout(SEARCH_TIMER);
+        SEARCH_TIMER = setTimeout(runSearchV2, 120);
+      } else {
+        hideSearchResults();
+      }
+    }
+
+    function resetFilters() {
+      document.getElementById('filterKategorie').value = '';
+      document.getElementById('filterBehoerde').value = '';
+      document.getElementById('filterVon').value = '';
+      document.getElementById('filterBis').value = '';
+      document.getElementById('filterToggle').classList.remove('active-filter');
+
+      const query = document.getElementById('searchInput').value.trim();
+      if (query.length >= 2) runSearchV2();
+      else hideSearchResults();
+    }
+
+    function focusSearch() {
+      backHome();
+      const input = document.getElementById('searchInput');
+      input.focus();
+      input.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+
+
+    /* ============================================================
+       V2 – ZULETZT ANGESEHEN
+       ============================================================ */
+
+    function getRecent() {
+      try {
+        return JSON.parse(localStorage.getItem(RECENT_STORAGE_KEY) || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveRecent(row) {
+      if (!row || (!row.objekt && !row.adresse)) return;
+
+      const key = [
+        String(row.objekt || '').trim().toLowerCase(),
+        String(row.adresse || '').trim().toLowerCase()
+      ].join('|');
+
+      let recent = getRecent().filter(function (x) {
+        return x.key !== key;
+      });
+
+      recent.unshift({
+        key:key,
+        objekt:row.objekt || '',
+        adresse:row.adresse || '',
+        kategorie:row.kategorie || '',
+        eingang:row.eingang || ''
+      });
+
+      recent = recent.slice(0, 6);
+
+      try {
+        localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(recent));
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    function renderRecent() {
+      const root = document.getElementById('recentList');
+      if (!root) return;
+
+      const recent = getRecent();
+
+      if (!recent.length) {
+        root.innerHTML =
+          '<div class="recent-empty">Noch keine Objektakte angesehen.</div>';
+        return;
+      }
+
+      root.innerHTML = recent.map(function (row) {
+        const title = row.objekt || row.adresse || 'Objekt';
+        const meta = [row.adresse, row.eingang].filter(Boolean).join(' · ');
+
+        return `
+          <div class="mini-item"
+               data-row="${encodeRow(row)}"
+               onclick="openObjectFromElement(this)">
+            <div class="mini-title">${escapeHtml(title)}</div>
+            <div class="mini-sub">${escapeHtml(meta)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function clearRecent() {
+      try {
+        localStorage.removeItem(RECENT_STORAGE_KEY);
+      } catch (e) {}
+      renderRecent();
+    }
+
+
+    /* ============================================================
+       V2 – ALLE TERMINE
+       ============================================================ */
+
+    function showAllAppointments() {
+      setLoading(true);
+
+      apiCall('termine')
+        .then(function(rows) {
+          renderAllAppointments(rows || []);
+          setLoading(false);
+        })
+        .catch(handleError);
+    }
+
+    function renderAllAppointments(rows) {
+      document.getElementById('homeView').classList.add('hidden');
+      document.getElementById('objectView').classList.add('hidden');
+      document.getElementById('appointmentsView').classList.remove('hidden');
+
+      document.getElementById('allAppointmentsCount').textContent =
+        rows.length + (rows.length === 1 ? ' Termin' : ' Termine');
+
+      const root = document.getElementById('allAppointmentsList');
+
+      if (!rows.length) {
+        root.innerHTML =
+          '<div class="empty">Keine zukünftigen Termine vorhanden.</div>';
+      } else {
+        root.innerHTML = rows.map(function (row) {
+          const title =
+            row.objekt || row.adresse || row.betreff || row.vorgang || 'Vorgang';
+
+          const meta =
+            [row.kategorie, row.behoerde, row.aktenzahl ? 'AZ ' + row.aktenzahl : '']
+              .filter(Boolean).join(' · ');
+
+          return `
+            <div class="appointment-row"
+                 data-row="${encodeRow(row)}"
+                 onclick="openDetailFromElement(this)">
+              <div class="appointment-date">${escapeHtml(buildAppointment(row))}</div>
+              <div>
+                <div class="history-title">${escapeHtml(title)}</div>
+                <div class="history-sub">${escapeHtml(meta)}</div>
+              </div>
+              ${buildStatusBadge(row)}
+            </div>
+          `;
+        }).join('');
+      }
+
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    function backFromAppointments() {
+      document.getElementById('appointmentsView').classList.add('hidden');
+      document.getElementById('objectView').classList.add('hidden');
+      document.getElementById('homeView').classList.remove('hidden');
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+
+
+    /* ============================================================
+       ROW ENCODE
+       ============================================================ */
+
+    function encodeRow(row) {
+
+      try {
+
+        return encodeURIComponent(
+          JSON.stringify(
+            row || {}
+          )
+        );
+
+      } catch (error) {
+
+        console.error(
+          error
+        );
+
+        return '';
+      }
+    }
+
+
+
+    function decodeRow(value) {
+
+      try {
+
+        return JSON.parse(
+          decodeURIComponent(
+            value || ''
+          )
+        );
+
+      } catch (error) {
+
+        console.error(
+          error
+        );
+
+        showToast(
+          'Vorgang konnte nicht geöffnet werden.'
+        );
+
+        return null;
+      }
+    }
+
+
+
+    /* ============================================================
+       LOADING
+       ============================================================ */
+
+    function setLoading(show) {
+
+      document
+        .getElementById(
+          'loading'
+        )
+        .classList.toggle(
+          'hidden',
+          !show
+        );
+    }
+
+
+
+    /* ============================================================
+       FEHLER
+       ============================================================ */
+
+    function handleError(error) {
+
+      setLoading(false);
+
+
+      console.error(
+        error
+      );
+
+
+      const message =
+        error &&
+        error.message
+          ? error.message
+          : String(
+              error ||
+              'Unbekannter Fehler'
+            );
+
+
+      showToast(
+        'Fehler: ' +
+        message
+      );
+    }
+
+
+
+    /* ============================================================
+       TOAST
+       ============================================================ */
+
+    function showToast(text) {
+
+      const toast =
+        document.getElementById(
+          'toast'
+        );
+
+
+      toast.textContent =
+        text;
+
+
+      toast.classList.add(
+        'show'
+      );
+
+
+      clearTimeout(
+        toast._timer
+      );
+
+
+      toast._timer =
+        setTimeout(
+          function () {
+
+            toast.classList.remove(
+              'show'
+            );
+
+          },
+          4000
+        );
+    }
+
+
+
+    /* ============================================================
+       HTML ESCAPE
+       ============================================================ */
+
+    function escapeHtml(value) {
+
+      return String(
+        value === null ||
+        value === undefined
+          ? ''
+          : value
+      )
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#039;');
+    }
+
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./sw.js').catch(function(error) {
+          console.warn('Service Worker:', error);
+        });
+      });
+    }
   </script>
 
 </body>
