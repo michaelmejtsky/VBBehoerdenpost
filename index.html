@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#25346f">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <title>VB Behördenpost</title>
+  <style>
+    html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#25346f;color:white}
+    body{display:grid;place-items:center;padding:24px;box-sizing:border-box}
+    .card{max-width:430px;text-align:center}
+    img{width:148px;height:148px;border-radius:30px;box-shadow:0 16px 45px #0006}
+    h1{margin:22px 0 8px;font-size:28px}
+    p{opacity:.8;line-height:1.5;font-size:13px}
+    a{display:block;margin-top:20px;padding:15px 18px;border-radius:14px;background:white;color:#25346f;text-decoration:none;font-weight:900}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <img src="./icon-192.png" alt="VB Behördenpost">
+    <h1>VB Behördenpost</h1>
+    <p>Interner Zugriff auf das Posteingangsbuch des Vorbeugenden Brandschutzes.</p>
+    <a href="https://script.google.com/macros/s/AKfycbz5cJuK3AccClgXpPnsw1rVeJ7FX2vZ9kU2BRs06Z6x7ZM1o-xbY6FKadwlNYbkPIEI/exec" id="openApp">VB Behördenpost öffnen</a>
+  </main>
+  <script>
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+  </script>
+</body>
+</html>
