@@ -15,114 +15,60 @@
   <link rel="apple-touch-icon" href="./icon-192.png">
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     html, body {
       margin: 0;
       width: 100%;
-      min-height: 100%;
+      height: 100%;
+      background: #25346f;
       font-family: Arial, Helvetica, sans-serif;
-      background: #f4f6fa;
-      color: #1e2633;
     }
 
     body {
-      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px;
     }
 
-    .card {
-      width: 100%;
-      max-width: 440px;
-      background: #fff;
-      border-radius: 24px;
-      padding: 32px 24px;
+    .start {
       text-align: center;
-      box-shadow: 0 10px 35px rgba(38,54,111,.12);
+      color: white;
     }
 
     .logo {
-      width: 150px;
-      max-width: 60%;
-      margin-bottom: 20px;
+      width: 160px;
+      max-width: 55vw;
       border-radius: 24px;
+      margin-bottom: 20px;
     }
 
-    h1 {
-      margin: 0 0 8px;
-      color: #25346f;
-      font-size: 30px;
-    }
-
-    .sub {
-      color: #718096;
-      font-size: 15px;
-      line-height: 1.5;
-      margin-bottom: 28px;
-    }
-
-    .button {
-      display: block;
-      width: 100%;
-      padding: 17px 20px;
-      border-radius: 14px;
-      text-decoration: none;
-      color: #fff;
-      background: linear-gradient(135deg,#34499a,#25346f);
+    .title {
+      font-size: 26px;
       font-weight: 700;
-      font-size: 17px;
-      box-shadow: 0 8px 20px rgba(37,52,111,.22);
     }
 
-    .footer {
-      margin-top: 24px;
-      color: #718096;
-      font-size: 12px;
+    .text {
+      margin-top: 8px;
+      opacity: .8;
+      font-size: 14px;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="card">
-
-    <img
-      src="./icon-512.png"
-      alt="Feuerwehr St. Pölten-Stadt"
-      class="logo"
-    >
-
-    <h1>VB Behördenpost</h1>
-
-    <div class="sub">
-      Interner Zugang zur Behördenpost<br>
-      Feuerwehr St. Pölten-Stadt
-    </div>
-
-    <a
-      class="button"
-      href="https://script.google.com/macros/s/AKfycbz5cJuK3AccClgXpPnsw1rVeJ7FX2vZ9kU2BRs06Z6x7ZM1o-xbY6FKadwlNYbkPIEI/exec"
-    >
-      VB Behördenpost öffnen
-    </a>
-
-    <div class="footer">
-      Feuerwehr St. Pölten-Stadt
-    </div>
-
+  <div class="start">
+    <img src="./icon-512.png" class="logo" alt="VB Behördenpost">
+    <div class="title">VB Behördenpost</div>
+    <div class="text">Wird geöffnet …</div>
   </div>
 
   <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function () {
-        navigator.serviceWorker.register("./sw.js");
-      });
-    }
+    const APP_URL =
+      "https://script.google.com/macros/s/AKfycbz5cJuK3AccClgXpPnsw1rVeJ7FX2vZ9kU2BRs06Z6x7ZM1o-xbY6FKadwlNYbkPIEI/exec";
+
+    setTimeout(function () {
+      window.location.replace(APP_URL);
+    }, 500);
   </script>
 
 </body>
