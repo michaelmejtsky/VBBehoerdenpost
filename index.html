@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#25346f">
 
   <title>VB Behördenpost</title>
-  <!-- V14: Performance + Ladungsbereinigung -->
+  <!-- V15: Kalender-Zuweisung + echte Ladungen + Gruppen-Ausblenden -->
 
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon-192.png">
@@ -4516,8 +4516,13 @@
                 type="button"
                 class="btn btn-danger-soft"
                 data-vorgang="${escapeHtml(row.vorgang || '')}"
+                data-gruppen-key="${escapeHtml(row.ausnahmeKey || '')}"
                 data-title="${escapeHtml(title)}"
-                onclick="markNotALadung(this.dataset.vorgang, this.dataset.title)"
+                onclick="markNotALadung(
+                  this.dataset.vorgang,
+                  this.dataset.title,
+                  this.dataset.gruppenKey
+                )"
               >
                 Keine Ladung
               </button>
@@ -4569,10 +4574,13 @@
             );
           } else {
             showToast(
-              'Zugewiesen an ' +
+              'Zuweisung gespeichert: ' +
               zustaendig +
-              '. ' +
-              (res.kalenderstatus || '')
+              '. Kalender: ' +
+              (
+                res.kalenderstatus ||
+                'nicht aktualisiert'
+              )
             );
           }
 
@@ -4587,56 +4595,82 @@
 
 
 
-    function markNotALadung(vorgang, title) {
-      if (!vorgang) return;
+    function markNotALadung(
+      vorgang,
+      title,
+      gruppenKey
+    ) {
+
+      if (
+        !vorgang &&
+        !gruppenKey
+      ) {
+        return;
+      }
 
       const label =
-        title || vorgang;
+        title ||
+        vorgang ||
+        'Eintrag';
 
       const ok =
         confirm(
           'Diesen Eintrag aus "Ladungen zuweisen" ausblenden?\n\n' +
           label +
           '\n\n' +
-          'Das Posteingangsbuch und der Kalender werden dabei NICHT gelöscht oder verändert.'
+          'Wenn davon Dubletten existieren, werden sie gemeinsam ausgeblendet.\n' +
+          'Das Posteingangsbuch und der Kalender werden NICHT gelöscht.'
         );
 
-      if (!ok) return;
+      if (!ok) {
+        return;
+      }
 
       apiCall(
         'ladung_ausblenden',
         {
-          vorgang:vorgang,
-          grund:'In der VB-App als "Keine Ladung" markiert'
+          vorgang:
+            vorgang || '',
+
+          gruppenKey:
+            gruppenKey || '',
+
+          grund:
+            'In der VB-App als "Keine Ladung" markiert'
         }
       )
-        .then(function(res) {
+        .then(
+          function(res) {
 
-          if (!res || !res.ok) {
-            throw new Error(
-              (res && res.error) ||
-              'Eintrag konnte nicht ausgeblendet werden.'
+            if (
+              !res ||
+              !res.ok
+            ) {
+
+              throw new Error(
+                (
+                  res &&
+                  res.error
+                ) ||
+                'Eintrag konnte nicht ausgeblendet werden.'
+              );
+            }
+
+            /*
+             * Danach nur die Ladungsliste aktualisieren.
+             * Kein Seiten-Reload.
+             */
+            showToast(
+              'Eintrag samt Dubletten aus der Ladungszuweisung ausgeblendet.'
             );
+
+            return loadAssignments();
           }
-
-          const card =
-            document.querySelector(
-              '.assignment-item[data-vorgang="' +
-              CSS.escape(String(vorgang)) +
-              '"]'
-            );
-
-          if (card) {
-            card.remove();
-          }
-
-          showToast(
-            'Eintrag aus der Ladungszuweisung ausgeblendet.'
-          );
-        })
-        .catch(handleError);
+        )
+        .catch(
+          handleError
+        );
     }
-
 
     /* ============================================================
        V11 – ANDROID / SAMSUNG ZURÜCK-NAVIGATION
