@@ -1455,6 +1455,49 @@
       .filter-panel { padding:10px; }
     }
 
+  
+
+    /* ============================================================
+       V7 – DETAIL / DOKUMENTE / BEGEHUNGSNOTIZEN
+       ============================================================ */
+    .detail-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+    .detail-summary .summary-card{padding:13px 14px;border-radius:14px;background:#f7f8fc;border:1px solid var(--border)}
+    .detail-summary .summary-card.full{grid-column:1/-1}
+    .summary-label{font-size:8px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+    .summary-value{margin-top:5px;font-size:13px;font-weight:900;line-height:1.4;overflow-wrap:anywhere}
+    .detail-section{margin-top:14px;border:1px solid var(--border);border-radius:16px;background:#fff;overflow:hidden}
+    .detail-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 15px;background:#f7f8fc;font-weight:900;color:var(--blue2);cursor:pointer}
+    .detail-section-body{padding:14px}
+    details.detail-section>summary{list-style:none}
+    details.detail-section>summary::-webkit-details-marker{display:none}
+    .document-box{margin-top:14px}
+    .document-link{min-height:52px}
+    .document-link small{display:block;font-size:9px;opacity:.82;font-weight:700;margin-top:2px}
+    .document-status{font-size:11px;color:var(--muted);margin-bottom:9px}
+    .note-form{display:grid;gap:10px}
+    .note-form label{font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+    .note-input,.note-textarea{width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:12px;padding:11px 12px;font:inherit;background:#fff;color:var(--text)}
+    .note-textarea{min-height:115px;resize:vertical;line-height:1.45}
+    .note-row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+    .note-row .btn{flex:1;min-width:130px}
+    .note-count{font-size:10px;color:var(--muted);text-align:right}
+    .note-list{display:grid;gap:10px;margin-top:13px}
+    .note-card{border:1px solid var(--border);border-radius:14px;padding:13px;background:#fff}
+    .note-card.done{background:#f6f7f9;opacity:.88}
+    .note-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:9px;color:var(--muted);font-weight:800;margin-bottom:8px}
+    .note-status{padding:3px 7px;border-radius:999px;background:#fff3cd;color:#775c00;font-weight:900}
+    .note-card.done .note-status{background:#e7f5ea;color:#216b32}
+    .note-text{white-space:pre-wrap;font-size:12px;line-height:1.5;font-weight:700}
+    .note-done-text{margin-top:9px;padding-top:9px;border-top:1px dashed var(--border);font-size:11px;line-height:1.45;color:var(--muted)}
+    .note-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+    .note-actions button{border:0;border-radius:9px;padding:8px 10px;font:inherit;font-size:10px;font-weight:900;cursor:pointer}
+    .note-edit{background:#eef1fb;color:#25346f}.note-finish{background:#25346f;color:#fff}
+    .open-notes-list{display:grid;gap:8px}
+    .open-note-item{padding:11px;border-radius:12px;background:#f7f8fc;cursor:pointer;border:1px solid var(--border)}
+    .open-note-title{font-size:11px;font-weight:900}.open-note-sub{font-size:9px;color:var(--muted);margin-top:4px}
+    .modal-card{width:min(760px,100%)}
+    @media(max-width:650px){.detail-summary{grid-template-columns:1fr}.detail-summary .summary-card.full{grid-column:auto}.modal-card{padding:15px;border-radius:16px}.detail-grid{grid-template-columns:1fr}}
+
   </style>
 </head>
 
@@ -1755,6 +1798,21 @@
         </div>
       </section>
 
+      <section class="section" id="openNotesSection">
+        <div class="section-head">
+          <div>
+            <div class="section-title">📝 Offene Begehungsnotizen</div>
+            <div class="section-subtitle">Vor Ort erfasst – später im Büro bearbeiten oder abschließen.</div>
+          </div>
+          <button type="button" class="btn btn-outline" onclick="loadOpenNotes()">↻ Aktualisieren</button>
+        </div>
+        <div class="section-body">
+          <div id="openNotesList" class="open-notes-list">
+            <div class="empty">Notizen werden geladen …</div>
+          </div>
+        </div>
+      </section>
+
       <section class="dashboard">
 
         <div class="card">
@@ -2001,56 +2059,57 @@
        DETAIL MODAL
        ========================================================== -->
 
-  <div
-    id="detailModal"
-    class="modal"
-  >
-
+  <div id="detailModal" class="modal">
     <div class="modal-card">
+      <div id="detailTitle" class="modal-title">Vorgang</div>
+      <div id="detailSubtitle" class="modal-subtitle"></div>
 
-      <div
-        id="detailTitle"
-        class="modal-title"
-      >
-        Vorgang
-      </div>
+      <div id="detailSummary" class="detail-summary"></div>
 
-      <div
-        id="detailSubtitle"
-        class="modal-subtitle"
-      ></div>
-
-
-      <div
-        id="detailGrid"
-        class="detail-grid"
-      ></div>
-
+      <details class="detail-section">
+        <summary class="detail-section-head">
+          <span>Weitere Informationen</span><span>▾</span>
+        </summary>
+        <div class="detail-section-body">
+          <div id="detailGrid" class="detail-grid"></div>
+        </div>
+      </details>
 
       <div id="documentBox" class="document-box">
-        <div class="document-box-title">Dokumente</div>
+        <div class="document-box-title">📄 Dokumente</div>
+        <div id="documentStatus" class="document-status">Dokumente werden geprüft …</div>
         <div id="documentList" class="document-list">
           <div class="document-empty">Dokumente werden geladen …</div>
         </div>
       </div>
 
-
-      <div class="modal-actions">
-
-        <button
-          type="button"
-          class="btn btn-light"
-          onclick="closeDetail()"
-        >
-          Schließen
-        </button>
-
+      <div class="detail-section">
+        <div class="detail-section-head"><span>📝 Begehungsnotizen</span><span id="noteBadge">0</span></div>
+        <div class="detail-section-body">
+          <div class="note-form">
+            <div>
+              <label for="noteAuthor">Bearbeiter</label>
+              <input id="noteAuthor" class="note-input" maxlength="80" placeholder="Name">
+            </div>
+            <div>
+              <label for="noteText">Neue Notiz</label>
+              <textarea id="noteText" class="note-textarea" maxlength="1500" placeholder="Feststellungen, offene Punkte, Nachweise, Rückfragen …" oninput="noteDraftChanged()"></textarea>
+              <div id="noteCount" class="note-count">0 / 1500</div>
+            </div>
+            <div class="note-row">
+              <button type="button" class="btn btn-primary" onclick="saveNewNote()">Notiz bestätigen</button>
+              <button type="button" class="btn btn-light" onclick="clearNoteDraft()">Entwurf leeren</button>
+            </div>
+          </div>
+          <div id="noteList" class="note-list"><div class="document-empty">Notizen werden geladen …</div></div>
+        </div>
       </div>
 
+      <div class="modal-actions">
+        <button type="button" class="btn btn-light" onclick="closeDetail()">Schließen</button>
+      </div>
     </div>
-
   </div>
-
 
 
   <!-- LOADING -->
@@ -2103,6 +2162,8 @@
     let APP_STARTED = false;
     let FILTER_DATA = null;
     const RECENT_STORAGE_KEY = 'vb_behoerdenpost_recent_v2';
+    const NOTE_AUTHOR_KEY = 'vb_behoerdenpost_note_author_v1';
+    const NOTE_DRAFT_PREFIX = 'vb_behoerdenpost_note_draft_';
 
 
 
@@ -2499,6 +2560,8 @@
       renderCategories(
         categories
       );
+
+      loadOpenNotes();
     }
 
 
@@ -3176,141 +3239,46 @@
        ============================================================ */
 
     function openDetail(row) {
+      if (!row) return;
+      CURRENT_DETAIL = row;
 
-      if (!row) {
-        return;
-      }
+      document.getElementById('detailTitle').textContent =
+        row.objekt || row.kategorie || row.betreff || 'Vorgang';
 
+      document.getElementById('detailSubtitle').textContent =
+        [row.vorgang, row.kategorie, row.eingang].filter(Boolean).join(' · ');
 
-      CURRENT_DETAIL =
-        row;
-
-
-      document.getElementById(
-        'detailTitle'
-      ).textContent =
-        row.kategorie ||
-        row.betreff ||
-        'Vorgang';
-
-
-      document.getElementById(
-        'detailSubtitle'
-      ).textContent =
-        [
-          row.vorgang,
-          row.eingang
-        ]
-          .filter(Boolean)
-          .join(' · ');
-
-
-      const fields = [
-
-        {
-          label:'Objekt / Firma',
-          value:row.objekt,
-          full:true
-        },
-
-        {
-          label:'Adresse',
-          value:row.adresse,
-          full:true
-        },
-
-        {
-          label:'Aktenzahl',
-          value:row.aktenzahl
-        },
-
-        {
-          label:'Behörde',
-          value:row.behoerde
-        },
-
-        {
-          label:'Absender',
-          value:row.absender
-        },
-
-        {
-          label:'Kategorie',
-          value:row.kategorie
-        },
-
-        {
-          label:'Betreff',
-          value:row.betreff,
-          full:true
-        },
-
-        {
-          label:'Termin',
-          value:buildAppointment(row)
-        },
-
-        {
-          label:'Kalenderstatus',
-          value:row.kalenderstatus
-        },
-
-        {
-          label:'Status',
-          value:row.status
-        },
-
-        {
-          label:'Hinweis',
-          value:row.hinweis,
-          full:true
-        },
-
-        {
-          label:'Verarbeitet am',
-          value:row.verarbeitetAm
-        }
-
+      const summaryFields = [
+        {label:'Objekt / Firma', value:row.objekt || row.betreff, full:true},
+        {label:'Adresse', value:row.adresse, full:true},
+        {label:'Aktenzahl', value:row.aktenzahl},
+        {label:'Termin', value:buildAppointment(row)}
       ];
 
+      document.getElementById('detailSummary').innerHTML = summaryFields
+        .filter(f => Boolean(f.value))
+        .map(f => `<div class="summary-card ${f.full ? 'full' : ''}"><div class="summary-label">${escapeHtml(f.label)}</div><div class="summary-value">${escapeHtml(f.value)}</div></div>`)
+        .join('');
 
-      document.getElementById(
-        'detailGrid'
-      ).innerHTML =
-        fields
-          .filter(
-            function (field) {
+      const fields = [
+        {label:'Behörde', value:row.behoerde},
+        {label:'Absender', value:row.absender},
+        {label:'Betreff', value:row.betreff, full:true},
+        {label:'Kalenderstatus', value:row.kalenderstatus, full:true},
+        {label:'Status', value:row.status},
+        {label:'Hinweis', value:row.hinweis, full:true},
+        {label:'Verarbeitet am', value:row.verarbeitetAm}
+      ];
 
-              return Boolean(
-                field.value
-              );
-            }
-          )
-          .map(
-            function (field) {
+      document.getElementById('detailGrid').innerHTML = fields
+        .filter(f => Boolean(f.value))
+        .map(f => `<div class="detail-field ${f.full ? 'full' : ''}"><div class="detail-label">${escapeHtml(f.label)}</div><div class="detail-value">${escapeHtml(f.value)}</div></div>`)
+        .join('');
 
-              return `
-                <div
-                  class="detail-field
-                  ${field.full ? 'full' : ''}"
-                >
-
-                  <div class="detail-label">
-                    ${escapeHtml(field.label)}
-                  </div>
-
-                  <div class="detail-value">
-                    ${escapeHtml(field.value)}
-                  </div>
-
-                </div>
-              `;
-            }
-          )
-          .join('');
-
-
+      restoreNoteAuthor();
+      restoreNoteDraft(row.vorgang);
       renderDocumentLoading();
+      loadNotesForCurrent();
 
       if (row.vorgang) {
         apiCall('dokumente', {vorgang:row.vorgang})
@@ -3327,31 +3295,14 @@
         }));
       }
 
-
-      document
-        .getElementById(
-          'detailModal'
-        )
-        .classList.add(
-          'show'
-        );
+      document.getElementById('detailModal').classList.add('show');
     }
 
-
-
     function closeDetail() {
-
-      document
-        .getElementById(
-          'detailModal'
-        )
-        .classList.remove(
-          'show'
-        );
-
-
-      CURRENT_DETAIL =
-        null;
+      const author = document.getElementById('noteAuthor');
+      if (author && author.value.trim()) { try { localStorage.setItem(NOTE_AUTHOR_KEY, author.value.trim()); } catch(e) {} }
+      document.getElementById('detailModal').classList.remove('show');
+      CURRENT_DETAIL = null;
     }
 
 
@@ -3420,53 +3371,176 @@
 
     function renderDocumentLoading() {
       const root = document.getElementById('documentList');
-      if (!root) return;
-      root.innerHTML = '<div class="document-empty">Dokumente werden geladen …</div>';
+      const status = document.getElementById('documentStatus');
+      if (status) status.textContent = 'Dokumente werden geprüft …';
+      if (root) root.innerHTML = '<div class="document-empty">Dokumente werden geladen …</div>';
     }
-
 
     function renderDocuments(documents) {
       const root = document.getElementById('documentList');
+      const status = document.getElementById('documentStatus');
       if (!root) return;
 
-      const docs = (documents || []).filter(function(doc) {
-        return doc && doc.url;
-      });
+      const docs = (documents || []).filter(doc => doc && (doc.fileId || doc.url));
+      if (status) status.textContent = docs.length ? (docs.length + (docs.length === 1 ? ' Dokument verfügbar' : ' Dokumente verfügbar')) : 'Kein ladbares Dokument gefunden';
 
       if (!docs.length) {
-        root.innerHTML =
-          '<div class="document-empty">Für diesen Vorgang wurde kein Dokumentlink gefunden.</div>';
+        root.innerHTML = '<div class="document-empty">Für diesen Vorgang wurde derzeit kein ladbares Dokument gefunden.</div>';
         return;
       }
 
       root.innerHTML = docs.map(function(doc, index) {
         const label = doc.name || ('Dokument ' + (index + 1));
+        const source = doc.quelle === 'DRIVE_FALLBACK' ? 'wiedergefunden' : 'verknüpft';
         return `
-          <button
-            type="button"
-            class="document-link"
-            data-url="${escapeHtml(doc.url)}"
-            onclick="openDocumentUrl(this.dataset.url)"
-          >
+          <button type="button" class="document-link"
+            data-file-id="${escapeHtml(doc.fileId || '')}"
+            data-url="${escapeHtml(doc.url || '')}"
+            onclick="openDocumentSecure(this.dataset.fileId, this.dataset.url)">
             <span>📄</span>
-            <span class="document-link-name">${escapeHtml(label)}</span>
+            <span class="document-link-name">${escapeHtml(label)}<small>${escapeHtml(source)}</small></span>
             <span>Öffnen ›</span>
-          </button>
-        `;
+          </button>`;
       }).join('');
     }
 
-
-    function openDocumentUrl(url) {
-      if (!url) {
-        showToast('Für diesen Vorgang ist kein Dokumentlink vorhanden.');
+    function openDocumentSecure(fileId, fallbackUrl) {
+      if (fileId && CURRENT_DETAIL && CURRENT_DETAIL.vorgang && API_TOKEN) {
+        const q = new URLSearchParams();
+        q.set('doc','1');
+        q.set('token',API_TOKEN);
+        q.set('vorgang',CURRENT_DETAIL.vorgang);
+        q.set('fileId',fileId);
+        window.open(API_URL + '?' + q.toString(), '_blank', 'noopener');
         return;
       }
-
-      window.open(url, '_blank', 'noopener');
+      if (fallbackUrl) window.open(fallbackUrl, '_blank', 'noopener');
+      else showToast('Dokument konnte nicht geöffnet werden.');
     }
 
+    /* ============================================================
+       BEGEHUNGSNOTIZEN
+       ============================================================ */
+    function restoreNoteAuthor() {
+      const el = document.getElementById('noteAuthor');
+      if (!el) return;
+      try { el.value = localStorage.getItem(NOTE_AUTHOR_KEY) || ''; } catch(e) {}
+    }
 
+    function noteDraftKey(vorgang) { return NOTE_DRAFT_PREFIX + String(vorgang || 'ohne'); }
+
+    function restoreNoteDraft(vorgang) {
+      const el = document.getElementById('noteText');
+      if (!el) return;
+      try { el.value = localStorage.getItem(noteDraftKey(vorgang)) || ''; } catch(e) { el.value=''; }
+      noteDraftChanged();
+    }
+
+    function noteDraftChanged() {
+      const el = document.getElementById('noteText');
+      const count = document.getElementById('noteCount');
+      if (!el) return;
+      if (count) count.textContent = el.value.length + ' / 1500';
+      if (CURRENT_DETAIL && CURRENT_DETAIL.vorgang) {
+        try { localStorage.setItem(noteDraftKey(CURRENT_DETAIL.vorgang), el.value); } catch(e) {}
+      }
+    }
+
+    function clearNoteDraft() {
+      const el = document.getElementById('noteText');
+      if (el) el.value='';
+      if (CURRENT_DETAIL && CURRENT_DETAIL.vorgang) {
+        try { localStorage.removeItem(noteDraftKey(CURRENT_DETAIL.vorgang)); } catch(e) {}
+      }
+      noteDraftChanged();
+    }
+
+    function saveNewNote() {
+      if (!CURRENT_DETAIL || !CURRENT_DETAIL.vorgang) return;
+      const author = (document.getElementById('noteAuthor').value || '').trim();
+      const note = (document.getElementById('noteText').value || '').trim();
+      if (!author) { showToast('Bitte Bearbeiter eingeben.'); return; }
+      if (!note) { showToast('Bitte eine Notiz eingeben.'); return; }
+      try { localStorage.setItem(NOTE_AUTHOR_KEY, author); } catch(e) {}
+
+      apiCall('notiz_speichern', {
+        vorgang:CURRENT_DETAIL.vorgang,
+        objekt:CURRENT_DETAIL.objekt || '',
+        adresse:CURRENT_DETAIL.adresse || '',
+        aktenzahl:CURRENT_DETAIL.aktenzahl || '',
+        notiz:note,
+        bearbeiter:author
+      }).then(function(res){
+        if (!res || !res.ok) throw new Error((res && res.error) || 'Notiz konnte nicht gespeichert werden.');
+        clearNoteDraft();
+        showToast('Notiz wurde bestätigt und gespeichert.');
+        loadNotesForCurrent();
+        loadOpenNotes();
+      }).catch(handleError);
+    }
+
+    function loadNotesForCurrent() {
+      const root = document.getElementById('noteList');
+      if (!CURRENT_DETAIL || !CURRENT_DETAIL.vorgang) { if(root) root.innerHTML=''; return; }
+      if (root) root.innerHTML='<div class="document-empty">Notizen werden geladen …</div>';
+      apiCall('notizen',{vorgang:CURRENT_DETAIL.vorgang}).then(function(res){ renderNotes((res && res.notizen) || []); }).catch(function(err){ console.error(err); if(root) root.innerHTML='<div class="document-empty">Notizen konnten nicht geladen werden.</div>'; });
+    }
+
+    function renderNotes(notes) {
+      const root = document.getElementById('noteList');
+      const badge = document.getElementById('noteBadge');
+      if (!root) return;
+      if (badge) badge.textContent = String((notes || []).length);
+      if (!notes || !notes.length) { root.innerHTML='<div class="document-empty">Noch keine Begehungsnotiz zu diesem Vorgang.</div>'; return; }
+
+      root.innerHTML = notes.map(function(n){
+        const done = String(n.status || '').toUpperCase() === 'ERLEDIGT';
+        return `<div class="note-card ${done ? 'done' : ''}">
+          <div class="note-meta"><span class="note-status">${escapeHtml(n.status || 'OFFEN')}</span><span>${escapeHtml(n.bearbeiter || '')}</span><span>${escapeHtml(n.erstelltAm || '')}</span></div>
+          <div class="note-text">${escapeHtml(n.notiz || '')}</div>
+          ${n.erledigungsnotiz ? `<div class="note-done-text"><b>Erledigung:</b> ${escapeHtml(n.erledigungsnotiz)}${n.erledigtAm ? ' · ' + escapeHtml(n.erledigtAm) : ''}</div>` : ''}
+          ${done ? '' : `<div class="note-actions"><button class="note-edit" data-id="${escapeHtml(n.id)}" onclick="editNotePrompt(this.dataset.id)">Bearbeiten</button><button class="note-finish" data-id="${escapeHtml(n.id)}" onclick="finishNotePrompt(this.dataset.id)">Als erledigt markieren</button></div>`}
+        </div>`;
+      }).join('');
+      window.__VB_NOTES = notes;
+    }
+
+    function editNotePrompt(id) {
+      const notes = window.__VB_NOTES || [];
+      const n = notes.find(x => x.id === id); if (!n) return;
+      const text = prompt('Notiz bearbeiten:', n.notiz || ''); if (text === null) return;
+      const author = (document.getElementById('noteAuthor').value || n.bearbeiter || '').trim();
+      if (!author) { showToast('Bitte Bearbeiter eingeben.'); return; }
+      apiCall('notiz_update',{id:id,notiz:text,bearbeiter:author}).then(function(res){ if(!res||!res.ok) throw new Error((res&&res.error)||'Fehler'); showToast('Notiz aktualisiert.'); loadNotesForCurrent(); loadOpenNotes(); }).catch(handleError);
+    }
+
+    function finishNotePrompt(id) {
+      const author = (document.getElementById('noteAuthor').value || '').trim();
+      if (!author) { showToast('Bitte Bearbeiter eingeben.'); return; }
+      const doneText = prompt('Erledigungsnotiz (optional):',''); if (doneText === null) return;
+      apiCall('notiz_erledigen',{id:id,bearbeiter:author,erledigungsnotiz:doneText}).then(function(res){ if(!res||!res.ok) throw new Error((res&&res.error)||'Fehler'); showToast('Notiz als erledigt markiert.'); loadNotesForCurrent(); loadOpenNotes(); }).catch(handleError);
+    }
+
+    function loadOpenNotes() {
+      const root = document.getElementById('openNotesList');
+      if (!root || !API_TOKEN) return;
+      root.innerHTML='<div class="empty">Notizen werden geladen …</div>';
+      apiCall('notizen',{status:'OFFEN'}).then(function(res){
+        const notes=(res&&res.notizen)||[];
+        if(!notes.length){root.innerHTML='<div class="empty">Keine offenen Begehungsnotizen. ✅</div>';return;}
+        root.innerHTML=notes.slice(0,12).map(function(n){return `<div class="open-note-item" data-vorgang="${escapeHtml(n.vorgang)}" onclick="openNoteVorgang(this.dataset.vorgang)"><div class="open-note-title">${escapeHtml(n.objekt || n.adresse || n.vorgang)}</div><div class="open-note-sub">${escapeHtml(n.bearbeiter || '')} · ${escapeHtml(n.erstelltAm || '')} · ${escapeHtml((n.notiz || '').substring(0,100))}</div></div>`;}).join('');
+      }).catch(function(err){console.error(err);root.innerHTML='<div class="empty">Offene Notizen konnten nicht geladen werden.</div>';});
+    }
+
+    function openNoteVorgang(vorgang) {
+      if (!vorgang) return;
+      setLoading(true);
+      apiCall('vorgang',{vorgang:vorgang}).then(function(res){
+        setLoading(false);
+        const row = res && (res.row || res.vorgang || res.data || res);
+        if (row && row.vorgang) openDetail(row); else throw new Error('Vorgang konnte nicht geladen werden.');
+      }).catch(handleError);
+    }
 
     /* ============================================================
        STATUS
