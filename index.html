@@ -9,6 +9,7 @@
   <meta name="theme-color" content="#25346f">
 
   <title>VB Behördenpost</title>
+  <!-- V10: Dokument-Fallback + Notiz-Vollansicht -->
 
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon-192.png">
@@ -1517,8 +1518,7 @@
     /* ============================================================
        PWA INSTALLATION
        ============================================================ */
-
-    .pwa-install-overlay {
+    .pwa-install-overlay{
       position:fixed;
       inset:0;
       z-index:99999;
@@ -1530,12 +1530,8 @@
       backdrop-filter:blur(7px);
       -webkit-backdrop-filter:blur(7px);
     }
-
-    .pwa-install-overlay.show {
-      display:flex;
-    }
-
-    .pwa-install-card {
+    .pwa-install-overlay.show{display:flex}
+    .pwa-install-card{
       width:min(450px,100%);
       padding:26px 21px;
       margin-bottom:env(safe-area-inset-bottom);
@@ -1544,77 +1540,37 @@
       text-align:center;
       box-shadow:0 25px 80px rgba(0,0,0,.32);
     }
-
-    .pwa-install-icon {
-      width:72px;
-      height:72px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+    .pwa-install-icon{
+      width:72px;height:72px;
+      display:flex;align-items:center;justify-content:center;
       margin:0 auto 15px;
       border-radius:20px;
       background:#eef1fb;
       font-size:37px;
     }
-
-    .pwa-install-small {
-      color:#34499a;
-      font-size:9px;
-      font-weight:900;
-      letter-spacing:.08em;
+    .pwa-install-small{
+      color:#34499a;font-size:9px;font-weight:900;letter-spacing:.08em;
     }
-
-    .pwa-install-card h2 {
-      margin:7px 0 8px;
-      color:#1e2633;
-      font-size:23px;
-      font-weight:900;
+    .pwa-install-card h2{
+      margin:7px 0 8px;color:#25346f;font-size:23px;font-weight:900;
     }
-
-    .pwa-install-card p {
-      margin:0;
-      color:#718096;
-      font-size:13px;
-      line-height:1.5;
+    .pwa-install-card p{
+      margin:0;color:#718096;font-size:13px;line-height:1.5;
     }
-
-    .pwa-install-btn {
-      width:100%;
-      min-height:54px;
-      margin-top:20px;
-      border:0;
-      border-radius:14px;
+    .pwa-install-btn{
+      width:100%;min-height:54px;margin-top:20px;border:0;border-radius:14px;
       background:linear-gradient(135deg,#25346f,#34499a);
-      color:#fff;
-      font-size:14px;
-      font-weight:900;
-      cursor:pointer;
+      color:#fff;font-size:14px;font-weight:900;cursor:pointer;
     }
-
-    .pwa-later-btn {
-      width:100%;
-      min-height:48px;
-      margin-top:9px;
-      border:0;
-      border-radius:14px;
-      background:#edf0f5;
-      color:#354052;
-      font-size:12px;
-      font-weight:900;
-      cursor:pointer;
+    .pwa-install-later{
+      width:100%;min-height:48px;margin-top:9px;border:0;border-radius:14px;
+      background:#edf0f5;color:#354052;font-size:12px;font-weight:900;cursor:pointer;
     }
-
-    .pwa-ios-help {
-      margin-top:16px;
-      padding:17px;
-      border-radius:15px;
-      background:#eef1fb;
-      color:#25346f;
-      font-size:13px;
-      line-height:1.45;
+    .pwa-ios-help{
+      margin-top:16px;padding:17px;border-radius:15px;background:#eef1fb;
+      color:#25346f;font-size:13px;line-height:1.5;
     }
-
-  </style>
+</style>
 </head>
 
 
@@ -3524,41 +3480,161 @@
       const status = document.getElementById('documentStatus');
       if (!root) return;
 
-      const docs = (documents || []).filter(doc => doc && (doc.fileId || doc.url));
-      if (status) status.textContent = docs.length ? (docs.length + (docs.length === 1 ? ' Dokument verfügbar' : ' Dokumente verfügbar')) : 'Kein Dokument gefunden';
+      const docs = (documents || []).filter(function(doc) {
+        return doc && (doc.fileId || doc.url);
+      });
+
+      if (status) {
+        status.textContent = docs.length
+          ? (
+              docs.length +
+              (
+                docs.length === 1
+                  ? ' Dokument verfügbar'
+                  : ' Dokumente verfügbar'
+              )
+            )
+          : 'Kein Dokument gefunden';
+      }
 
       if (!docs.length) {
-        root.innerHTML = '<div class="document-empty">Kein Dokumentlink ist mehr gültig und auch die Archivsuche hat keine eindeutig passende Datei gefunden.</div>';
+        root.innerHTML =
+          '<div class="document-empty">' +
+          'Für diesen Vorgang ist im Posteingangsbuch derzeit kein Dokumentlink hinterlegt ' +
+          'und es konnte auch kein passendes Dokument wiedergefunden werden.' +
+          '</div>';
         return;
       }
 
-      root.innerHTML = docs.map(function(doc, index) {
-        const label = doc.name || ('Dokument ' + (index + 1));
-        const source = doc.quelle === 'DRIVE_FALLBACK' ? 'wiedergefunden' : 'verknüpft';
-        return `
-          <button type="button" class="document-link"
-            data-file-id="${escapeHtml(doc.fileId || '')}"
-            data-url="${escapeHtml(doc.url || '')}"
-            onclick="openDocumentSecure(this.dataset.fileId, this.dataset.url)">
-            <span>📄</span>
-            <span class="document-link-name">${escapeHtml(label)}<small>${escapeHtml(source)}</small></span>
-            <span>Öffnen ›</span>
-          </button>`;
-      }).join('');
+      root.innerHTML = docs
+        .map(function(doc, index) {
+
+          const label =
+            doc.name ||
+            ('Dokument ' + (index + 1));
+
+          let sourceText = 'Dokument';
+
+          if (doc.viewer === true) {
+            sourceText =
+              doc.quelle === 'ARCHIVSUCHE'
+                ? 'im Archiv wiedergefunden · geschützter Viewer'
+                : 'verknüpft · geschützter Viewer';
+
+          } else if (doc.direkterLink === true) {
+            sourceText =
+              'gespeicherter Drive-Link';
+
+          } else if (doc.quelle === 'ARCHIVSUCHE') {
+            sourceText =
+              'im Archiv wiedergefunden';
+          }
+
+          const actionText =
+            doc.viewer === true
+              ? 'Öffnen ›'
+              : 'In Drive öffnen ›';
+
+          return `
+            <button
+              type="button"
+              class="document-link"
+              data-file-id="${escapeHtml(doc.fileId || '')}"
+              data-url="${escapeHtml(doc.url || '')}"
+              data-viewer="${doc.viewer === true ? '1' : '0'}"
+              onclick="openDocumentSecure(
+                this.dataset.fileId,
+                this.dataset.url,
+                this.dataset.viewer === '1'
+              )"
+            >
+              <span>📄</span>
+
+              <span class="document-link-name">
+                ${escapeHtml(label)}
+                <small>${escapeHtml(sourceText)}</small>
+              </span>
+
+              <span>${escapeHtml(actionText)}</span>
+            </button>
+          `;
+        })
+        .join('');
     }
 
-    function openDocumentSecure(fileId, fallbackUrl) {
-      if (fileId && CURRENT_DETAIL && CURRENT_DETAIL.vorgang && API_TOKEN) {
-        const q = new URLSearchParams();
-        q.set('doc','1');
-        q.set('token',API_TOKEN);
-        q.set('vorgang',CURRENT_DETAIL.vorgang);
-        q.set('fileId',fileId);
-        window.open(API_URL + '?' + q.toString(), '_blank', 'noopener');
+
+    function openDocumentSecure(
+      fileId,
+      fallbackUrl,
+      useViewer
+    ) {
+
+      /*
+       * Geschützter Viewer nur dann, wenn das Backend die Datei
+       * tatsächlich lesen konnte.
+       */
+      if (
+        useViewer === true &&
+        fileId &&
+        CURRENT_DETAIL &&
+        CURRENT_DETAIL.vorgang &&
+        API_TOKEN
+      ) {
+
+        const q =
+          new URLSearchParams();
+
+        q.set(
+          'doc',
+          '1'
+        );
+
+        q.set(
+          'token',
+          API_TOKEN
+        );
+
+        q.set(
+          'vorgang',
+          CURRENT_DETAIL.vorgang
+        );
+
+        q.set(
+          'fileId',
+          fileId
+        );
+
+        window.open(
+          API_URL +
+          '?' +
+          q.toString(),
+          '_blank',
+          'noopener'
+        );
+
         return;
       }
-      if (fallbackUrl) window.open(fallbackUrl, '_blank', 'noopener');
-      else showToast('Dokument konnte nicht geöffnet werden.');
+
+
+      /*
+       * Wenn Apps Script keinen Drive-Zugriff hat,
+       * verwenden wir bewusst den ORIGINALEN gespeicherten Link.
+       */
+      if (fallbackUrl) {
+
+        window.open(
+          fallbackUrl,
+          '_blank',
+          'noopener'
+        );
+
+        return;
+      }
+
+
+      showToast(
+        'Dokument konnte nicht geöffnet werden.'
+      );
     }
 
     /* ============================================================
@@ -4261,32 +4337,26 @@
   </script>
 
 
-
   <!-- ============================================================
        PWA INSTALLATION
        ============================================================ -->
-  <div id="pwaInstallOverlay" class="pwa-install-overlay" aria-hidden="true">
-    <div class="pwa-install-card" role="dialog" aria-modal="true" aria-labelledby="pwaInstallTitle">
+  <div id="pwaInstallOverlay" class="pwa-install-overlay">
+    <div class="pwa-install-card">
       <div class="pwa-install-icon">📄</div>
       <div class="pwa-install-small">FEUERWEHR ST. PÖLTEN-STADT</div>
-      <h2 id="pwaInstallTitle">VB Behördenpost installieren</h2>
-      <p id="pwaInstallText">Die App kann auf diesem Gerät installiert werden.</p>
+      <h2>VB Behördenpost installieren</h2>
+      <p id="pwaInstallText">VB Behördenpost kann als App auf diesem Gerät installiert werden.</p>
 
       <div id="pwaIosHelp" class="pwa-ios-help" style="display:none;">
         <b>iPhone / iPad</b><br><br>
-        Tippe in Safari auf<br><br>
-        <strong>Teilen ⬆️</strong><br><br>
-        und anschließend auf<br><br>
-        <strong>„Zum Home-Bildschirm“</strong>
+        Tippe in Safari auf <b>Teilen ⬆️</b><br><br>
+        und anschließend auf <b>„Zum Home-Bildschirm“</b>.
       </div>
 
-      <button id="pwaInstallBtn" type="button" class="pwa-install-btn" style="display:none;">
+      <button id="pwaInstallBtn" class="pwa-install-btn" type="button" style="display:none;">
         📲 App installieren
       </button>
-
-      <button id="pwaInstallLater" type="button" class="pwa-later-btn">
-        Jetzt nicht
-      </button>
+      <button id="pwaInstallLater" class="pwa-install-later" type="button">Jetzt nicht</button>
     </div>
   </div>
 
@@ -4295,7 +4365,6 @@
     /* ============================================================
        PWA INSTALLATION
        ============================================================ */
-
     let pwaDeferredPrompt = null;
 
     const pwaParams = new URLSearchParams(window.location.search);
@@ -4308,24 +4377,11 @@
     const pwaIosHelp = document.getElementById('pwaIosHelp');
 
     function pwaIsInstalled() {
-      return (
-        window.matchMedia('(display-mode: standalone)').matches ||
-        window.navigator.standalone === true
-      );
-    }
-
-    function pwaOpenOverlay() {
-      pwaOverlay.classList.add('show');
-      pwaOverlay.setAttribute('aria-hidden', 'false');
-    }
-
-    function pwaCloseOverlay() {
-      pwaOverlay.classList.remove('show');
-      pwaOverlay.setAttribute('aria-hidden', 'true');
+      return window.matchMedia('(display-mode: standalone)').matches ||
+             window.navigator.standalone === true;
     }
 
     window.addEventListener('beforeinstallprompt', function(event) {
-      console.log('PWA: beforeinstallprompt erhalten');
       event.preventDefault();
       pwaDeferredPrompt = event;
 
@@ -4342,52 +4398,43 @@
 
       pwaIosHelp.style.display = 'none';
       pwaInstallBtn.style.display = 'block';
-      pwaInstallText.innerHTML =
-        'VB Behördenpost kann als App auf diesem Gerät installiert werden.';
-      pwaOpenOverlay();
+      pwaInstallText.textContent = 'VB Behördenpost kann als App auf diesem Gerät installiert werden.';
+      pwaOverlay.classList.add('show');
     }
 
     function pwaShowIosInstall() {
       pwaInstallBtn.style.display = 'none';
       pwaIosHelp.style.display = 'block';
-      pwaInstallText.innerHTML =
-        'Lege VB Behördenpost auf deinem Home-Bildschirm ab.';
-      pwaOpenOverlay();
+      pwaInstallText.textContent = 'Installiere VB Behördenpost auf deinem Home-Bildschirm.';
+      pwaOverlay.classList.add('show');
     }
 
-    function pwaShowSamsungFallback() {
+    function pwaShowFallback() {
       pwaInstallBtn.style.display = 'none';
       pwaIosHelp.style.display = 'none';
       pwaInstallText.innerHTML =
         '<b>VB Behördenpost wurde geöffnet.</b><br><br>' +
-        'Falls der Browser die Installation nicht automatisch anbietet:<br><br>' +
-        '<b>☰ Browser-Menü</b><br>' +
-        '→ <b>Seite hinzufügen zu</b> oder <b>App installieren</b><br>' +
-        '→ <b>Startbildschirm</b>';
-      pwaOpenOverlay();
+        'Falls dein Browser keinen Installationsdialog anzeigt:<br><br>' +
+        '<b>Browser-Menü</b> → <b>App installieren</b> oder <b>Zum Startbildschirm hinzufügen</b>.';
+      pwaOverlay.classList.add('show');
     }
 
     pwaInstallBtn.addEventListener('click', async function() {
       if (!pwaDeferredPrompt) {
-        pwaShowSamsungFallback();
+        pwaShowFallback();
         return;
       }
 
-      try {
-        pwaDeferredPrompt.prompt();
-        const result = await pwaDeferredPrompt.userChoice;
-        console.log('PWA Installation:', result.outcome);
-      } catch (error) {
-        console.warn('PWA Installation:', error);
-      } finally {
-        pwaDeferredPrompt = null;
-        pwaCloseOverlay();
-        pwaCleanUrl();
-      }
+      pwaDeferredPrompt.prompt();
+      const result = await pwaDeferredPrompt.userChoice;
+      console.log('PWA Installation:', result.outcome);
+      pwaDeferredPrompt = null;
+      pwaOverlay.classList.remove('show');
+      pwaCleanUrl();
     });
 
     pwaLaterBtn.addEventListener('click', function() {
-      pwaCloseOverlay();
+      pwaOverlay.classList.remove('show');
       pwaCleanUrl();
     });
 
@@ -4395,18 +4442,12 @@
       const url = new URL(window.location.href);
       url.searchParams.delete('install');
       url.searchParams.delete('source');
-
-      window.history.replaceState(
-        {},
-        '',
-        url.pathname + url.search + url.hash
-      );
+      window.history.replaceState({}, '', url.pathname + url.search + url.hash);
     }
 
     window.addEventListener('appinstalled', function() {
-      console.log('VB Behördenpost wurde installiert.');
       pwaDeferredPrompt = null;
-      pwaCloseOverlay();
+      pwaOverlay.classList.remove('show');
       pwaCleanUrl();
     });
 
@@ -4419,9 +4460,8 @@
       }
 
       const ua = navigator.userAgent;
-      const ios =
-        /iPhone|iPad|iPod/i.test(ua) ||
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const ios = /iPhone|iPad|iPod/i.test(ua) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
       if (ios) {
         setTimeout(pwaShowIosInstall, 600);
@@ -4429,11 +4469,8 @@
       }
 
       setTimeout(function() {
-        if (pwaDeferredPrompt) {
-          pwaShowAndroidInstall();
-        } else {
-          pwaShowSamsungFallback();
-        }
+        if (pwaDeferredPrompt) pwaShowAndroidInstall();
+        else pwaShowFallback();
       }, 5000);
     });
   </script>
