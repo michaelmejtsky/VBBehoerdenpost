@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#25346f">
 
   <title>VB Behördenpost</title>
-  <!-- V10: Dokument-Fallback + Notiz-Vollansicht -->
+  <!-- V12: Zuweisung im Archiv + Termin-Deduplizierung -->
 
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon-192.png">
@@ -1514,11 +1514,171 @@
     @media(max-width:650px){.detail-summary{grid-template-columns:1fr}.detail-summary .summary-card.full{grid-column:auto}.modal-card{padding:15px;border-radius:16px}.detail-grid{grid-template-columns:1fr}}
 
   
+    /* ============================================================
+       V11 – LADUNGSZUWEISUNG / MOBILE NAVIGATION
+       ============================================================ */
+
+    .assignment-section {
+      margin-top:24px;
+    }
+
+    .assignment-list {
+      display:grid;
+      gap:12px;
+    }
+
+    .assignment-item {
+      padding:16px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:#fff;
+      box-shadow:0 4px 14px rgba(37,52,111,.05);
+    }
+
+    .assignment-top {
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .assignment-title {
+      font-size:15px;
+      line-height:1.35;
+      font-weight:900;
+      color:var(--text);
+    }
+
+    .assignment-meta {
+      margin-top:5px;
+      font-size:12px;
+      line-height:1.45;
+      color:var(--muted);
+    }
+
+    .assignment-owner {
+      display:inline-flex;
+      align-items:center;
+      margin-top:10px;
+      padding:7px 10px;
+      border-radius:999px;
+      background:var(--blue-soft);
+      color:var(--blue);
+      font-size:12px;
+      font-weight:900;
+    }
+
+    .assignment-owner.unassigned {
+      background:#f1f3f8;
+      color:#68718c;
+    }
+
+    .assignment-actions {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+
+    .assignment-actions button {
+      min-height:42px;
+    }
+
+    .assignment-select {
+      width:100%;
+      min-height:48px;
+      margin-top:12px;
+      padding:0 13px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#fff;
+      color:var(--text);
+      font-size:15px;
+      font-weight:800;
+    }
+
+    .assignment-save {
+      width:100%;
+      min-height:48px;
+      margin-top:10px;
+    }
+
+    .back-button {
+      min-height:48px !important;
+      padding:0 16px !important;
+      margin-bottom:16px !important;
+      border:1px solid var(--border) !important;
+      border-radius:14px !important;
+      background:#fff !important;
+      box-shadow:0 5px 16px rgba(37,52,111,.08) !important;
+      color:var(--blue) !important;
+      font-size:16px !important;
+      font-weight:900 !important;
+      display:inline-flex !important;
+      align-items:center !important;
+      gap:9px !important;
+    }
+
+    .mobile-back-bar {
+      display:none;
+    }
+
+    @media (max-width:720px) {
+      .object-page {
+        padding-bottom:90px;
+      }
+
+      .back-button {
+        width:100%;
+        justify-content:flex-start;
+        font-size:17px !important;
+      }
+
+      .mobile-back-bar {
+        position:fixed;
+        left:0;
+        right:0;
+        bottom:0;
+        z-index:1500;
+        display:flex;
+        padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+        background:rgba(255,255,255,.96);
+        border-top:1px solid var(--border);
+        box-shadow:0 -8px 24px rgba(37,52,111,.12);
+        backdrop-filter:blur(12px);
+      }
+
+      .mobile-back-bar button {
+        width:100%;
+        min-height:50px;
+        border:0;
+        border-radius:14px;
+        background:var(--blue);
+        color:#fff;
+        font-size:16px;
+        font-weight:900;
+      }
+    }
+
+  
+    .assignment-badge {
+      display:inline-flex;
+      align-items:center;
+      margin-top:7px;
+      padding:6px 9px;
+      border-radius:999px;
+      background:#eef1fb;
+      color:#25346f;
+      font-size:12px;
+      font-weight:900;
+    }
+
 
     /* ============================================================
        PWA INSTALLATION
        ============================================================ */
-    .pwa-install-overlay{
+
+    .pwa-install-overlay {
       position:fixed;
       inset:0;
       z-index:99999;
@@ -1530,8 +1690,12 @@
       backdrop-filter:blur(7px);
       -webkit-backdrop-filter:blur(7px);
     }
-    .pwa-install-overlay.show{display:flex}
-    .pwa-install-card{
+
+    .pwa-install-overlay.show {
+      display:flex;
+    }
+
+    .pwa-install-card {
       width:min(450px,100%);
       padding:26px 21px;
       margin-bottom:env(safe-area-inset-bottom);
@@ -1540,37 +1704,87 @@
       text-align:center;
       box-shadow:0 25px 80px rgba(0,0,0,.32);
     }
-    .pwa-install-icon{
-      width:72px;height:72px;
-      display:flex;align-items:center;justify-content:center;
+
+    .pwa-install-icon {
+      width:72px;
+      height:72px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
       margin:0 auto 15px;
       border-radius:20px;
       background:#eef1fb;
       font-size:37px;
     }
-    .pwa-install-small{
-      color:#34499a;font-size:9px;font-weight:900;letter-spacing:.08em;
+
+    .pwa-install-small {
+      color:#34499a;
+      font-size:9px;
+      font-weight:900;
+      letter-spacing:.08em;
     }
-    .pwa-install-card h2{
-      margin:7px 0 8px;color:#25346f;font-size:23px;font-weight:900;
+
+    .pwa-install-card h2 {
+      margin:7px 0 8px;
+      color:#1e2633;
+      font-size:23px;
+      font-weight:900;
     }
-    .pwa-install-card p{
-      margin:0;color:#718096;font-size:13px;line-height:1.5;
+
+    .pwa-install-card p {
+      margin:0;
+      color:#718096;
+      font-size:13px;
+      line-height:1.5;
     }
-    .pwa-install-btn{
-      width:100%;min-height:54px;margin-top:20px;border:0;border-radius:14px;
+
+    .pwa-install-btn {
+      width:100%;
+      min-height:54px;
+      margin-top:20px;
+      border:0;
+      border-radius:14px;
       background:linear-gradient(135deg,#25346f,#34499a);
-      color:#fff;font-size:14px;font-weight:900;cursor:pointer;
+      color:#fff;
+      font-size:14px;
+      font-weight:900;
+      cursor:pointer;
     }
-    .pwa-install-later{
-      width:100%;min-height:48px;margin-top:9px;border:0;border-radius:14px;
-      background:#edf0f5;color:#354052;font-size:12px;font-weight:900;cursor:pointer;
+
+    .pwa-later-btn {
+      width:100%;
+      min-height:48px;
+      margin-top:9px;
+      border:0;
+      border-radius:14px;
+      background:#edf0f5;
+      color:#354052;
+      font-size:12px;
+      font-weight:900;
+      cursor:pointer;
     }
-    .pwa-ios-help{
-      margin-top:16px;padding:17px;border-radius:15px;background:#eef1fb;
-      color:#25346f;font-size:13px;line-height:1.5;
+
+    .pwa-ios-help {
+      margin-top:16px;
+      padding:17px;
+      border-radius:15px;
+      background:#eef1fb;
+      color:#25346f;
+      font-size:13px;
+      line-height:1.45;
     }
-</style>
+
+    .pwa-browser-help {
+      margin-top:15px;
+      padding:15px;
+      border-radius:15px;
+      background:#eef1fb;
+      color:#25346f;
+      font-size:12px;
+      line-height:1.6;
+    }
+
+  </style>
 </head>
 
 
@@ -1870,6 +2084,25 @@
         </div>
       </section>
 
+
+      <section class="section assignment-section" id="assignmentSection">
+        <div class="section-head">
+          <div>
+            <div class="section-title">👤 Ladungen zuweisen</div>
+            <div class="section-subtitle">
+              Zuständigkeit im VB-Team festlegen. Die Zuweisung wird auch
+              am Ende des Kalender-Titels ergänzt.
+            </div>
+          </div>
+          <button type="button" class="btn btn-outline" onclick="loadAssignments()">↻ Aktualisieren</button>
+        </div>
+        <div class="section-body">
+          <div id="assignmentList" class="assignment-list">
+            <div class="empty">Ladungen werden geladen …</div>
+          </div>
+        </div>
+      </section>
+
       <section class="section" id="openNotesSection">
         <div class="section-head">
           <div>
@@ -2039,7 +2272,7 @@
       <button
         type="button"
         class="back-button"
-        onclick="backHome()"
+        onclick="smartBack()"
       >
         ← Zurück zur Suche
       </button>
@@ -2257,7 +2490,9 @@
     let SEARCH_TIMER = null;
     let SEARCH_SEQUENCE = 0;
     let CURRENT_DETAIL = null;
+    let CURRENT_ROUTE = 'home';
     let APP_STARTED = false;
+    let ASSIGNMENT_DATA = null;
     let FILTER_DATA = null;
     let CURRENT_OPEN_NOTE = null;
     const RECENT_STORAGE_KEY = 'vb_behoerdenpost_recent_v2';
@@ -2426,6 +2661,8 @@
           renderDashboard();
           loadFilterData();
           renderRecent();
+          loadAssignments();
+          initMobileHistory();
           setLoading(false);
         })
         .catch(function() {
@@ -2550,6 +2787,8 @@
         loadDashboard();
         loadFilterData();
         renderRecent();
+        loadAssignments();
+        initMobileHistory();
       }
     }
 
@@ -2661,6 +2900,7 @@
       );
 
       loadOpenNotes();
+      loadAssignments();
     }
 
 
@@ -3018,6 +3258,12 @@
                       ${escapeHtml(meta)}
                     </div>
 
+                    ${
+                      row.zustaendig
+                        ? `<div class="assignment-badge">👤 Zuständig: ${escapeHtml(row.zustaendig)}</div>`
+                        : ''
+                    }
+
                   </div>
 
                   <div class="result-arrow">
@@ -3157,6 +3403,8 @@
 
 
     function renderObject(data) {
+
+      pushRouteState('object');
 
       document
         .getElementById(
@@ -3339,6 +3587,9 @@
 
     function openDetail(row) {
       if (!row) return;
+
+      pushRouteState('detail');
+
       CURRENT_DETAIL = row;
 
       document.getElementById('detailTitle').textContent =
@@ -3351,7 +3602,9 @@
         {label:'Objekt / Firma', value:row.objekt || row.betreff, full:true},
         {label:'Adresse', value:row.adresse, full:true},
         {label:'Aktenzahl', value:row.aktenzahl},
-        {label:'Termin', value:buildAppointment(row)}
+        {label:'Termin', value:buildAppointment(row)},
+        {label:'Zuständig', value:row.zustaendig},
+        {label:'Zugewiesen am', value:row.zugewiesenAm}
       ];
 
       document.getElementById('detailSummary').innerHTML = summaryFields
@@ -3871,9 +4124,52 @@
     function deleteOpenNote(id) {
       const n = getOpenNoteById(id);
       if (!n) return;
+
       if (!confirm('Diese Begehungsnotiz wirklich dauerhaft löschen?')) return;
+
       apiCall('notiz_loeschen',{id:id})
-        .then(function(res){ if(!res||!res.ok) throw new Error((res&&res.error)||'Notiz konnte nicht gelöscht werden.'); showToast('Notiz gelöscht.'); loadOpenNotes(); })
+        .then(function(res){
+          if(!res||!res.ok) {
+            throw new Error((res&&res.error)||'Notiz konnte nicht gelöscht werden.');
+          }
+
+          // Nur die gelöschte Notiz aus dem lokalen Zustand entfernen.
+          // Keine komplette Seite und nicht einmal die ganze Liste neu laden.
+          window.__VB_OPEN_NOTES =
+            (window.__VB_OPEN_NOTES || []).filter(function(x){
+              return x.id !== id;
+            });
+
+          const card =
+            document.querySelector(
+              '.open-note-item[data-id="' +
+              CSS.escape(String(id)) +
+              '"]'
+            );
+
+          if (card) {
+            card.remove();
+          }
+
+          const root = document.getElementById('openNotesList');
+
+          if (
+            root &&
+            !(window.__VB_OPEN_NOTES || []).length
+          ) {
+            root.innerHTML =
+              '<div class="empty">Keine offenen Begehungsnotizen. ✅</div>';
+          }
+
+          if (
+            CURRENT_OPEN_NOTE &&
+            CURRENT_OPEN_NOTE.id === id
+          ) {
+            closeOpenNoteDetail();
+          }
+
+          showToast('Notiz gelöscht.');
+        })
         .catch(handleError);
     }
 
@@ -3886,6 +4182,304 @@
         if (row && row.vorgang) openDetail(row); else throw new Error('Vorgang konnte nicht geladen werden.');
       }).catch(handleError);
     }
+
+
+    /* ============================================================
+       V11 – LADUNGEN ZUWEISEN
+       ============================================================ */
+
+    function loadAssignments() {
+      const root = document.getElementById('assignmentList');
+      if (!root || !API_TOKEN) return;
+
+      root.innerHTML =
+        '<div class="empty">Ladungen werden geladen …</div>';
+
+      apiCall('ladungen_zuweisung')
+        .then(function(res) {
+          if (!res || res.ok === false) {
+            throw new Error((res && res.error) || 'Ladungen konnten nicht geladen werden.');
+          }
+
+          ASSIGNMENT_DATA = res;
+          renderAssignments(res);
+        })
+        .catch(function(err) {
+          console.error(err);
+          root.innerHTML =
+            '<div class="empty">Ladungen konnten nicht geladen werden.</div>';
+        });
+    }
+
+
+    function renderAssignments(data) {
+      const root = document.getElementById('assignmentList');
+      if (!root) return;
+
+      const rows = (data && data.ladungen) || [];
+      const team = (data && data.team) || [];
+
+      if (!rows.length) {
+        root.innerHTML =
+          '<div class="empty">Derzeit keine anstehenden Ladungen. ✅</div>';
+        return;
+      }
+
+      root.innerHTML = rows.map(function(row) {
+        const current = row.zustaendig || '';
+
+        const options =
+          ['<option value="">Zuständigkeit auswählen …</option>']
+            .concat(
+              team.map(function(name) {
+                return '<option value="' +
+                  escapeHtml(name) +
+                  '"' +
+                  (name === current ? ' selected' : '') +
+                  '>' +
+                  escapeHtml(name) +
+                  '</option>';
+              })
+            )
+            .join('');
+
+        const meta = [
+          row.terminDatum
+            ? (
+                row.terminDatum +
+                (row.terminBeginn ? ' · ' + row.terminBeginn + ' Uhr' : '')
+              )
+            : 'kein Termin erkannt',
+          row.aktenzahl ? 'AZ ' + row.aktenzahl : '',
+          row.adresse || ''
+        ].filter(Boolean).join(' · ');
+
+        return `
+          <div class="assignment-item" data-vorgang="${escapeHtml(row.vorgang || '')}">
+            <div class="assignment-top">
+              <div>
+                <div class="assignment-title">
+                  ${escapeHtml(row.objekt || row.betreff || row.vorgang || 'Ladung')}
+                </div>
+                <div class="assignment-meta">${escapeHtml(meta)}</div>
+              </div>
+            </div>
+
+            <div class="assignment-owner ${current ? '' : 'unassigned'}">
+              ${current ? 'Zuständig: ' + escapeHtml(current) : 'Noch nicht zugewiesen'}
+            </div>
+
+            <select
+              class="assignment-select"
+              id="assign_${escapeHtml(row.vorgang || '')}"
+            >
+              ${options}
+            </select>
+
+            <div class="assignment-actions">
+              <button
+                type="button"
+                class="btn btn-primary assignment-save"
+                data-vorgang="${escapeHtml(row.vorgang || '')}"
+                onclick="saveAssignment(this.dataset.vorgang)"
+              >
+                Zuweisung speichern
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-outline"
+                data-row="${encodeRow(row)}"
+                onclick="openDetailFromElement(this)"
+              >
+                Ladung öffnen
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+
+    function saveAssignment(vorgang) {
+      if (!vorgang) return;
+
+      const select =
+        document.getElementById(
+          'assign_' + vorgang
+        );
+
+      if (!select || !select.value) {
+        showToast('Bitte zuerst eine Person auswählen.');
+        return;
+      }
+
+      const zustaendig =
+        select.value;
+
+      setLoading(true);
+
+      apiCall(
+        'ladung_zuweisen',
+        {
+          vorgang:vorgang,
+          zustaendig:zustaendig
+        }
+      )
+        .then(function(res) {
+          setLoading(false);
+
+          if (!res || !res.ok) {
+            throw new Error((res && res.error) || 'Zuweisung konnte nicht gespeichert werden.');
+          }
+
+          if (
+            res.kalenderAktualisiert
+          ) {
+            showToast(
+              'Zugewiesen an ' +
+              zustaendig +
+              ' · Kalender aktualisiert.'
+            );
+          } else {
+            showToast(
+              'Zugewiesen an ' +
+              zustaendig +
+              '. ' +
+              (res.kalenderstatus || '')
+            );
+          }
+
+          // Nur die Zuweisungsliste aktualisieren.
+          loadAssignments();
+        })
+        .catch(function(err) {
+          setLoading(false);
+          handleError(err);
+        });
+    }
+
+
+    /* ============================================================
+       V11 – ANDROID / SAMSUNG ZURÜCK-NAVIGATION
+       ============================================================ */
+
+    let VB_HISTORY_READY = false;
+    let VB_HANDLING_POPSTATE = false;
+
+    function initMobileHistory() {
+      if (VB_HISTORY_READY) return;
+
+      VB_HISTORY_READY = true;
+
+      try {
+        history.replaceState(
+          {vbRoute:'home'},
+          '',
+          location.href
+        );
+      } catch(e) {}
+
+      window.addEventListener(
+        'popstate',
+        function(event) {
+
+          VB_HANDLING_POPSTATE = true;
+
+          const detail =
+            document.getElementById('detailModal');
+
+          const noteModal =
+            document.getElementById('openNoteModal');
+
+          if (
+            noteModal &&
+            noteModal.classList.contains('show')
+          ) {
+            closeOpenNoteDetail();
+            CURRENT_ROUTE = 'home';
+
+          } else if (
+            detail &&
+            detail.classList.contains('show')
+          ) {
+            closeDetail();
+            CURRENT_ROUTE =
+              !document.getElementById('objectView').classList.contains('hidden')
+                ? 'object'
+                : 'home';
+
+          } else if (
+            !document.getElementById('objectView').classList.contains('hidden') ||
+            !document.getElementById('appointmentsView').classList.contains('hidden')
+          ) {
+            backHome();
+            CURRENT_ROUTE = 'home';
+          }
+
+          setTimeout(function() {
+            VB_HANDLING_POPSTATE = false;
+          }, 0);
+        }
+      );
+    }
+
+
+    function pushRouteState(route) {
+      CURRENT_ROUTE = route || 'home';
+
+      if (
+        !VB_HISTORY_READY ||
+        VB_HANDLING_POPSTATE
+      ) {
+        return;
+      }
+
+      try {
+        history.pushState(
+          {vbRoute:CURRENT_ROUTE},
+          '',
+          location.href
+        );
+      } catch(e) {}
+    }
+
+
+    function smartBack() {
+      const detail =
+        document.getElementById('detailModal');
+
+      if (
+        detail &&
+        detail.classList.contains('show')
+      ) {
+        closeDetail();
+        return;
+      }
+
+      const noteModal =
+        document.getElementById('openNoteModal');
+
+      if (
+        noteModal &&
+        noteModal.classList.contains('show')
+      ) {
+        closeOpenNoteDetail();
+        return;
+      }
+
+      if (
+        !document.getElementById('objectView').classList.contains('hidden') ||
+        !document.getElementById('appointmentsView').classList.contains('hidden')
+      ) {
+        backHome();
+        CURRENT_ROUTE = 'home';
+        return;
+      }
+
+      backHome();
+    }
+
 
     /* ============================================================
        STATUS
@@ -4147,6 +4741,11 @@
               <div>
                 <div class="history-title">${escapeHtml(title)}</div>
                 <div class="history-sub">${escapeHtml(meta)}</div>
+                ${
+                  row.zustaendig
+                    ? `<div class="assignment-badge">👤 Zuständig: ${escapeHtml(row.zustaendig)}</div>`
+                    : ''
+                }
               </div>
               ${buildStatusBadge(row)}
             </div>
@@ -4340,55 +4939,106 @@
   <!-- ============================================================
        PWA INSTALLATION
        ============================================================ -->
+
   <div id="pwaInstallOverlay" class="pwa-install-overlay">
     <div class="pwa-install-card">
-      <div class="pwa-install-icon">📄</div>
-      <div class="pwa-install-small">FEUERWEHR ST. PÖLTEN-STADT</div>
-      <h2>VB Behördenpost installieren</h2>
-      <p id="pwaInstallText">VB Behördenpost kann als App auf diesem Gerät installiert werden.</p>
 
-      <div id="pwaIosHelp" class="pwa-ios-help" style="display:none;">
-        <b>iPhone / iPad</b><br><br>
-        Tippe in Safari auf <b>Teilen ⬆️</b><br><br>
-        und anschließend auf <b>„Zum Home-Bildschirm“</b>.
+      <div class="pwa-install-icon">📄</div>
+
+      <div class="pwa-install-small">
+        FEUERWEHR ST. PÖLTEN-STADT
       </div>
 
-      <button id="pwaInstallBtn" class="pwa-install-btn" type="button" style="display:none;">
+      <h2>VB Behördenpost installieren</h2>
+
+      <p id="pwaInstallText">
+        VB Behördenpost kann als App auf diesem Gerät installiert werden.
+      </p>
+
+      <div
+        id="pwaIosHelp"
+        class="pwa-ios-help"
+        style="display:none;"
+      >
+        <b>iPhone / iPad</b>
+        <br><br>
+        Tippe in Safari auf
+        <br><br>
+        <strong>Teilen ⬆️</strong>
+        <br><br>
+        und anschließend auf
+        <br><br>
+        <strong>„Zum Home-Bildschirm“</strong>
+      </div>
+
+      <button
+        id="pwaInstallBtn"
+        class="pwa-install-btn"
+        type="button"
+        style="display:none;"
+      >
         📲 App installieren
       </button>
-      <button id="pwaInstallLater" class="pwa-install-later" type="button">Jetzt nicht</button>
+
+      <button
+        id="pwaInstallLater"
+        class="pwa-later-btn"
+        type="button"
+      >
+        Jetzt nicht
+      </button>
+
     </div>
   </div>
 
 
   <script>
-    /* ============================================================
-       PWA INSTALLATION
-       ============================================================ */
     let pwaDeferredPrompt = null;
 
-    const pwaParams = new URLSearchParams(window.location.search);
-    const pwaInstallRequested = pwaParams.get('install') === '1';
+    const pwaParams =
+      new URLSearchParams(window.location.search);
 
-    const pwaOverlay = document.getElementById('pwaInstallOverlay');
-    const pwaInstallBtn = document.getElementById('pwaInstallBtn');
-    const pwaLaterBtn = document.getElementById('pwaInstallLater');
-    const pwaInstallText = document.getElementById('pwaInstallText');
-    const pwaIosHelp = document.getElementById('pwaIosHelp');
+    const pwaInstallRequested =
+      pwaParams.get('install') === '1';
+
+    const pwaOverlay =
+      document.getElementById('pwaInstallOverlay');
+
+    const pwaInstallBtn =
+      document.getElementById('pwaInstallBtn');
+
+    const pwaLaterBtn =
+      document.getElementById('pwaInstallLater');
+
+    const pwaInstallText =
+      document.getElementById('pwaInstallText');
+
+    const pwaIosHelp =
+      document.getElementById('pwaIosHelp');
+
 
     function pwaIsInstalled() {
-      return window.matchMedia('(display-mode: standalone)').matches ||
-             window.navigator.standalone === true;
+      return (
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true
+      );
     }
 
-    window.addEventListener('beforeinstallprompt', function(event) {
-      event.preventDefault();
-      pwaDeferredPrompt = event;
 
-      if (pwaInstallRequested && !pwaIsInstalled()) {
-        pwaShowAndroidInstall();
-      }
-    });
+    function pwaCleanUrl() {
+      const url =
+        new URL(window.location.href);
+
+      url.searchParams.delete('install');
+      url.searchParams.delete('source');
+
+      window.history.replaceState(
+        {},
+        '',
+        url.pathname + url.search + url.hash
+      );
+    }
+
 
     function pwaShowAndroidInstall() {
       if (pwaIsInstalled()) {
@@ -4398,81 +5048,165 @@
 
       pwaIosHelp.style.display = 'none';
       pwaInstallBtn.style.display = 'block';
-      pwaInstallText.textContent = 'VB Behördenpost kann als App auf diesem Gerät installiert werden.';
+
+      pwaInstallText.innerHTML =
+        'VB Behördenpost kann als App auf diesem Gerät installiert werden.';
+
       pwaOverlay.classList.add('show');
     }
+
 
     function pwaShowIosInstall() {
       pwaInstallBtn.style.display = 'none';
       pwaIosHelp.style.display = 'block';
-      pwaInstallText.textContent = 'Installiere VB Behördenpost auf deinem Home-Bildschirm.';
+
+      pwaInstallText.innerHTML =
+        'Lege VB Behördenpost auf deinem Home-Bildschirm ab.';
+
       pwaOverlay.classList.add('show');
     }
 
-    function pwaShowFallback() {
+
+    function pwaShowBrowserFallback() {
       pwaInstallBtn.style.display = 'none';
       pwaIosHelp.style.display = 'none';
-      pwaInstallText.innerHTML =
-        '<b>VB Behördenpost wurde geöffnet.</b><br><br>' +
-        'Falls dein Browser keinen Installationsdialog anzeigt:<br><br>' +
-        '<b>Browser-Menü</b> → <b>App installieren</b> oder <b>Zum Startbildschirm hinzufügen</b>.';
+
+      pwaInstallText.innerHTML = `
+        <b>VB Behördenpost wurde geöffnet.</b>
+
+        <div class="pwa-browser-help">
+          Falls dein Browser keinen Installationsdialog anzeigt:
+          <br><br>
+          <b>☰ Browser-Menü</b>
+          <br>
+          → <b>Seite hinzufügen zu</b>
+          <br>
+          → <b>Startbildschirm</b>
+        </div>
+      `;
+
       pwaOverlay.classList.add('show');
     }
 
-    pwaInstallBtn.addEventListener('click', async function() {
-      if (!pwaDeferredPrompt) {
-        pwaShowFallback();
-        return;
+
+    window.addEventListener(
+      'beforeinstallprompt',
+      function(event) {
+        event.preventDefault();
+
+        pwaDeferredPrompt =
+          event;
+
+        console.log(
+          'VB Behördenpost: Installation verfügbar'
+        );
+
+        if (
+          pwaInstallRequested &&
+          !pwaIsInstalled()
+        ) {
+          pwaShowAndroidInstall();
+        }
       }
+    );
 
-      pwaDeferredPrompt.prompt();
-      const result = await pwaDeferredPrompt.userChoice;
-      console.log('PWA Installation:', result.outcome);
-      pwaDeferredPrompt = null;
-      pwaOverlay.classList.remove('show');
-      pwaCleanUrl();
-    });
 
-    pwaLaterBtn.addEventListener('click', function() {
-      pwaOverlay.classList.remove('show');
-      pwaCleanUrl();
-    });
+    pwaInstallBtn.addEventListener(
+      'click',
+      async function() {
+        if (!pwaDeferredPrompt) {
+          pwaShowBrowserFallback();
+          return;
+        }
 
-    function pwaCleanUrl() {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('install');
-      url.searchParams.delete('source');
-      window.history.replaceState({}, '', url.pathname + url.search + url.hash);
-    }
+        pwaDeferredPrompt.prompt();
 
-    window.addEventListener('appinstalled', function() {
-      pwaDeferredPrompt = null;
-      pwaOverlay.classList.remove('show');
-      pwaCleanUrl();
-    });
+        const result =
+          await pwaDeferredPrompt.userChoice;
 
-    window.addEventListener('load', function() {
-      if (!pwaInstallRequested) return;
+        console.log(
+          'VB Behördenpost Installation:',
+          result.outcome
+        );
 
-      if (pwaIsInstalled()) {
+        pwaDeferredPrompt =
+          null;
+
+        pwaOverlay.classList.remove('show');
+
         pwaCleanUrl();
-        return;
       }
+    );
 
-      const ua = navigator.userAgent;
-      const ios = /iPhone|iPad|iPod/i.test(ua) ||
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-      if (ios) {
-        setTimeout(pwaShowIosInstall, 600);
-        return;
+    pwaLaterBtn.addEventListener(
+      'click',
+      function() {
+        pwaOverlay.classList.remove('show');
+        pwaCleanUrl();
       }
+    );
 
-      setTimeout(function() {
-        if (pwaDeferredPrompt) pwaShowAndroidInstall();
-        else pwaShowFallback();
-      }, 5000);
-    });
+
+    window.addEventListener(
+      'appinstalled',
+      function() {
+        pwaDeferredPrompt = null;
+
+        pwaOverlay.classList.remove('show');
+
+        pwaCleanUrl();
+
+        console.log(
+          'VB Behördenpost wurde installiert.'
+        );
+      }
+    );
+
+
+    window.addEventListener(
+      'load',
+      function() {
+        if (!pwaInstallRequested) {
+          return;
+        }
+
+        if (pwaIsInstalled()) {
+          pwaCleanUrl();
+          return;
+        }
+
+        const ua =
+          navigator.userAgent;
+
+        const ios =
+          /iPhone|iPad|iPod/i.test(ua) ||
+          (
+            navigator.platform === 'MacIntel' &&
+            navigator.maxTouchPoints > 1
+          );
+
+        if (ios) {
+          setTimeout(
+            pwaShowIosInstall,
+            600
+          );
+
+          return;
+        }
+
+        setTimeout(
+          function() {
+            if (pwaDeferredPrompt) {
+              pwaShowAndroidInstall();
+            } else {
+              pwaShowBrowserFallback();
+            }
+          },
+          5000
+        );
+      }
+    );
   </script>
 
   <script>
