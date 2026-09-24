@@ -1501,6 +1501,14 @@
     .open-note-finish{background:#e7f7ed;color:#176437}
     .open-note-delete{background:#fdecec;color:#9b1c1c}
     .open-note-title{font-size:11px;font-weight:900}.open-note-sub{font-size:9px;color:var(--muted);margin-top:4px}
+    .open-note-preview{margin-top:8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;font-size:12px;line-height:1.5;font-weight:700}
+    .open-note-hint{margin-top:8px;font-size:9px;color:var(--blue);font-weight:900}
+    .note-detail-card{width:min(720px,calc(100vw - 24px));max-height:88vh;overflow:auto}
+    .note-detail-text{white-space:pre-wrap;word-break:break-word;font-size:15px;line-height:1.65;font-weight:700;background:#f7f8fc;border:1px solid var(--border);border-radius:14px;padding:15px;margin-top:12px}
+    .note-detail-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:10px;color:var(--muted);font-weight:800}
+    .note-detail-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}
+    .note-detail-actions .btn{width:100%}
+    @media(max-width:560px){.note-detail-actions{grid-template-columns:1fr}.note-detail-text{font-size:14px}}
     .modal-card{width:min(760px,100%)}
     @media(max-width:650px){.detail-summary{grid-template-columns:1fr}.detail-summary .summary-card.full{grid-column:auto}.modal-card{padding:15px;border-radius:16px}.detail-grid{grid-template-columns:1fr}}
 
@@ -2118,6 +2126,32 @@
   </div>
 
 
+
+  <!-- ==========================================================
+       OFFENE NOTIZ – VOLLANSICHT
+       ========================================================== -->
+  <div id="openNoteModal" class="modal">
+    <div class="modal-card note-detail-card">
+      <div id="openNoteDetailTitle" class="modal-title">Begehungsnotiz</div>
+      <div id="openNoteDetailSubtitle" class="modal-subtitle"></div>
+      <div id="openNoteDetailMeta" class="note-detail-meta"></div>
+      <div id="openNoteDetailText" class="note-detail-text"></div>
+      <div id="openNoteDetailDone" class="note-done-text" style="display:none"></div>
+
+      <div class="note-detail-actions">
+        <button type="button" class="btn btn-light" onclick="editCurrentOpenNote()">✏️ Bearbeiten</button>
+        <button type="button" class="btn btn-primary" onclick="finishCurrentOpenNote()">✅ Abschließen</button>
+        <button type="button" class="btn btn-light" onclick="openCurrentNoteVorgang()">📂 Vorgang öffnen</button>
+        <button type="button" class="btn btn-light" onclick="deleteCurrentOpenNote()">🗑️ Löschen</button>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-light" onclick="closeOpenNoteDetail()">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+
   <!-- LOADING -->
 
   <div
@@ -2167,6 +2201,7 @@
     let CURRENT_DETAIL = null;
     let APP_STARTED = false;
     let FILTER_DATA = null;
+    let CURRENT_OPEN_NOTE = null;
     const RECENT_STORAGE_KEY = 'vb_behoerdenpost_recent_v2';
     const NOTE_AUTHOR_KEY = 'vb_behoerdenpost_note_author_v1';
     const NOTE_DRAFT_PREFIX = 'vb_behoerdenpost_note_draft_';
@@ -3536,10 +3571,11 @@
         if(!notes.length){root.innerHTML='<div class="empty">Keine offenen Begehungsnotizen. ✅</div>';return;}
         window.__VB_OPEN_NOTES = notes;
         root.innerHTML=notes.slice(0,12).map(function(n){
-          return `<div class="open-note-item" data-vorgang="${escapeHtml(n.vorgang)}" onclick="openNoteVorgang(this.dataset.vorgang)">
+          return `<div class="open-note-item" data-id="${escapeHtml(n.id)}" onclick="openOpenNoteDetail(this.dataset.id)">
             <div class="open-note-title">${escapeHtml(n.objekt || n.adresse || n.vorgang)}</div>
             <div class="open-note-sub">${escapeHtml(n.bearbeiter || '')} · ${escapeHtml(n.erstelltAm || '')}</div>
-            <div class="note-text" style="margin-top:8px">${escapeHtml(n.notiz || '')}</div>
+            <div class="open-note-preview">${escapeHtml(n.notiz || '')}</div>
+            <div class="open-note-hint">Notiz antippen für Vollansicht</div>
             <div class="open-note-actions">
               <button type="button" class="open-note-edit" data-id="${escapeHtml(n.id)}" onclick="event.stopPropagation();editOpenNote(this.dataset.id)">Bearbeiten</button>
               <button type="button" class="open-note-finish" data-id="${escapeHtml(n.id)}" onclick="event.stopPropagation();finishOpenNote(this.dataset.id)">Abschließen</button>
@@ -3552,6 +3588,76 @@
 
     function getOpenNoteById(id) {
       return (window.__VB_OPEN_NOTES || []).find(function(n){ return n.id === id; }) || null;
+    }
+
+    function openOpenNoteDetail(id) {
+      const n = getOpenNoteById(id);
+      if (!n) return;
+      CURRENT_OPEN_NOTE = n;
+
+      const title = document.getElementById('openNoteDetailTitle');
+      const subtitle = document.getElementById('openNoteDetailSubtitle');
+      const meta = document.getElementById('openNoteDetailMeta');
+      const textEl = document.getElementById('openNoteDetailText');
+      const doneEl = document.getElementById('openNoteDetailDone');
+
+      if (title) title.textContent = n.objekt || n.adresse || 'Begehungsnotiz';
+      if (subtitle) subtitle.textContent = [n.adresse || '', n.aktenzahl || '', n.vorgang || ''].filter(Boolean).join(' · ');
+      if (meta) meta.innerHTML = [
+        n.status ? '<span class="note-status">' + escapeHtml(n.status) + '</span>' : '',
+        n.bearbeiter ? '<span>Bearbeiter: ' + escapeHtml(n.bearbeiter) + '</span>' : '',
+        n.erstelltAm ? '<span>Erstellt: ' + escapeHtml(n.erstelltAm) + '</span>' : '',
+        n.bearbeitetAm ? '<span>Bearbeitet: ' + escapeHtml(n.bearbeitetAm) + '</span>' : ''
+      ].filter(Boolean).join('');
+      if (textEl) textEl.textContent = n.notiz || '';
+      if (doneEl) {
+        if (n.erledigungsnotiz) {
+          doneEl.style.display = 'block';
+          doneEl.innerHTML = '<b>Erledigung:</b> ' + escapeHtml(n.erledigungsnotiz) + (n.erledigtAm ? ' · ' + escapeHtml(n.erledigtAm) : '');
+        } else {
+          doneEl.style.display = 'none';
+          doneEl.innerHTML = '';
+        }
+      }
+
+      document.getElementById('openNoteModal').classList.add('show');
+    }
+
+    function closeOpenNoteDetail() {
+      const modal = document.getElementById('openNoteModal');
+      if (modal) modal.classList.remove('show');
+      CURRENT_OPEN_NOTE = null;
+    }
+
+    function editCurrentOpenNote() {
+      if (!CURRENT_OPEN_NOTE) return;
+      const id = CURRENT_OPEN_NOTE.id;
+      editOpenNote(id);
+      setTimeout(function(){
+        const fresh = getOpenNoteById(id);
+        if (fresh && document.getElementById('openNoteModal').classList.contains('show')) openOpenNoteDetail(id);
+      }, 700);
+    }
+
+    function finishCurrentOpenNote() {
+      if (!CURRENT_OPEN_NOTE) return;
+      const id = CURRENT_OPEN_NOTE.id;
+      finishOpenNote(id);
+      closeOpenNoteDetail();
+    }
+
+    function deleteCurrentOpenNote() {
+      if (!CURRENT_OPEN_NOTE) return;
+      const id = CURRENT_OPEN_NOTE.id;
+      deleteOpenNote(id);
+      closeOpenNoteDetail();
+    }
+
+    function openCurrentNoteVorgang() {
+      if (!CURRENT_OPEN_NOTE || !CURRENT_OPEN_NOTE.vorgang) return;
+      const vorgang = CURRENT_OPEN_NOTE.vorgang;
+      closeOpenNoteDetail();
+      openNoteVorgang(vorgang);
     }
 
     function getOpenNoteBearbeiter(note) {
@@ -3568,7 +3674,7 @@
       const bearbeiter = getOpenNoteBearbeiter(n);
       if (!bearbeiter) { showToast('Bitte zuerst bei einem Vorgang einen Bearbeiter hinterlegen.'); return; }
       apiCall('notiz_update',{id:id,notiz:text,bearbeiter:bearbeiter})
-        .then(function(res){ if(!res||!res.ok) throw new Error((res&&res.error)||'Notiz konnte nicht geändert werden.'); showToast('Notiz aktualisiert.'); loadOpenNotes(); })
+        .then(function(res){ if(!res||!res.ok) throw new Error((res&&res.error)||'Notiz konnte nicht geändert werden.'); showToast('Notiz aktualisiert.'); loadOpenNotes(); closeOpenNoteDetail(); })
         .catch(handleError);
     }
 
@@ -4043,6 +4149,12 @@
         .replace(/"/g,'&quot;')
         .replace(/'/g,'&#039;');
     }
+
+
+    document.addEventListener('click', function(e) {
+      const m = document.getElementById('openNoteModal');
+      if (m && e.target === m) closeOpenNoteDetail();
+    });
 
   </script>
 
