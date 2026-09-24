@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#25346f">
 
   <title>VB Behördenpost</title>
-  <!-- V12: Zuweisung im Archiv + Termin-Deduplizierung -->
+  <!-- V13: Ladungsbereinigung + Deduplizierung + Keine-Ladung-Funktion -->
 
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon-192.png">
@@ -1673,115 +1673,18 @@
       font-weight:900;
     }
 
-
-    /* ============================================================
-       PWA INSTALLATION
-       ============================================================ */
-
-    .pwa-install-overlay {
-      position:fixed;
-      inset:0;
-      z-index:99999;
-      display:none;
-      align-items:flex-end;
-      justify-content:center;
-      padding:16px;
-      background:rgba(15,22,42,.72);
-      backdrop-filter:blur(7px);
-      -webkit-backdrop-filter:blur(7px);
+  
+    .btn-danger-soft {
+      border:1px solid #efc7c7 !important;
+      background:#fff7f7 !important;
+      color:#a32727 !important;
     }
 
-    .pwa-install-overlay.show {
-      display:flex;
-    }
-
-    .pwa-install-card {
-      width:min(450px,100%);
-      padding:26px 21px;
-      margin-bottom:env(safe-area-inset-bottom);
-      border-radius:25px;
-      background:#fff;
-      text-align:center;
-      box-shadow:0 25px 80px rgba(0,0,0,.32);
-    }
-
-    .pwa-install-icon {
-      width:72px;
-      height:72px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      margin:0 auto 15px;
-      border-radius:20px;
-      background:#eef1fb;
-      font-size:37px;
-    }
-
-    .pwa-install-small {
-      color:#34499a;
-      font-size:9px;
-      font-weight:900;
-      letter-spacing:.08em;
-    }
-
-    .pwa-install-card h2 {
-      margin:7px 0 8px;
-      color:#1e2633;
-      font-size:23px;
-      font-weight:900;
-    }
-
-    .pwa-install-card p {
-      margin:0;
-      color:#718096;
-      font-size:13px;
-      line-height:1.5;
-    }
-
-    .pwa-install-btn {
-      width:100%;
-      min-height:54px;
-      margin-top:20px;
-      border:0;
-      border-radius:14px;
-      background:linear-gradient(135deg,#25346f,#34499a);
-      color:#fff;
-      font-size:14px;
-      font-weight:900;
-      cursor:pointer;
-    }
-
-    .pwa-later-btn {
-      width:100%;
-      min-height:48px;
-      margin-top:9px;
-      border:0;
-      border-radius:14px;
-      background:#edf0f5;
-      color:#354052;
+    .assignment-duplicate-note {
+      margin-top:8px;
       font-size:12px;
-      font-weight:900;
-      cursor:pointer;
-    }
-
-    .pwa-ios-help {
-      margin-top:16px;
-      padding:17px;
-      border-radius:15px;
-      background:#eef1fb;
-      color:#25346f;
-      font-size:13px;
-      line-height:1.45;
-    }
-
-    .pwa-browser-help {
-      margin-top:15px;
-      padding:15px;
-      border-radius:15px;
-      background:#eef1fb;
-      color:#25346f;
-      font-size:12px;
-      line-height:1.6;
+      font-weight:800;
+      color:#6f7895;
     }
 
   </style>
@@ -4254,14 +4157,33 @@
           row.adresse || ''
         ].filter(Boolean).join(' · ');
 
+        const title =
+          row.anzeigeTitel ||
+          row.objekt ||
+          row.betreff ||
+          row.adresse ||
+          row.vorgang ||
+          'Ladung';
+
         return `
           <div class="assignment-item" data-vorgang="${escapeHtml(row.vorgang || '')}">
             <div class="assignment-top">
               <div>
                 <div class="assignment-title">
-                  ${escapeHtml(row.objekt || row.betreff || row.vorgang || 'Ladung')}
+                  ${escapeHtml(title)}
                 </div>
-                <div class="assignment-meta">${escapeHtml(meta)}</div>
+
+                <div class="assignment-meta">
+                  ${escapeHtml(meta)}
+                </div>
+
+                ${
+                  Number(row.doppelteEintraege || 0) > 0
+                    ? `<div class="assignment-duplicate-note">
+                         ${Number(row.doppelteEintraege)} doppelter Eintrag automatisch zusammengefasst
+                       </div>`
+                    : ''
+                }
               </div>
             </div>
 
@@ -4294,12 +4216,21 @@
               >
                 Ladung öffnen
               </button>
+
+              <button
+                type="button"
+                class="btn btn-danger-soft"
+                data-vorgang="${escapeHtml(row.vorgang || '')}"
+                data-title="${escapeHtml(title)}"
+                onclick="markNotALadung(this.dataset.vorgang, this.dataset.title)"
+              >
+                Keine Ladung
+              </button>
             </div>
           </div>
         `;
       }).join('');
     }
-
 
     function saveAssignment(vorgang) {
       if (!vorgang) return;
@@ -4357,6 +4288,58 @@
           setLoading(false);
           handleError(err);
         });
+    }
+
+
+
+    function markNotALadung(vorgang, title) {
+      if (!vorgang) return;
+
+      const label =
+        title || vorgang;
+
+      const ok =
+        confirm(
+          'Diesen Eintrag aus "Ladungen zuweisen" ausblenden?\n\n' +
+          label +
+          '\n\n' +
+          'Das Posteingangsbuch und der Kalender werden dabei NICHT gelöscht oder verändert.'
+        );
+
+      if (!ok) return;
+
+      apiCall(
+        'ladung_ausblenden',
+        {
+          vorgang:vorgang,
+          grund:'In der VB-App als "Keine Ladung" markiert'
+        }
+      )
+        .then(function(res) {
+
+          if (!res || !res.ok) {
+            throw new Error(
+              (res && res.error) ||
+              'Eintrag konnte nicht ausgeblendet werden.'
+            );
+          }
+
+          const card =
+            document.querySelector(
+              '.assignment-item[data-vorgang="' +
+              CSS.escape(String(vorgang)) +
+              '"]'
+            );
+
+          if (card) {
+            card.remove();
+          }
+
+          showToast(
+            'Eintrag aus der Ladungszuweisung ausgeblendet.'
+          );
+        })
+        .catch(handleError);
     }
 
 
@@ -4933,280 +4916,6 @@
       if (m && e.target === m) closeOpenNoteDetail();
     });
 
-  </script>
-
-
-  <!-- ============================================================
-       PWA INSTALLATION
-       ============================================================ -->
-
-  <div id="pwaInstallOverlay" class="pwa-install-overlay">
-    <div class="pwa-install-card">
-
-      <div class="pwa-install-icon">📄</div>
-
-      <div class="pwa-install-small">
-        FEUERWEHR ST. PÖLTEN-STADT
-      </div>
-
-      <h2>VB Behördenpost installieren</h2>
-
-      <p id="pwaInstallText">
-        VB Behördenpost kann als App auf diesem Gerät installiert werden.
-      </p>
-
-      <div
-        id="pwaIosHelp"
-        class="pwa-ios-help"
-        style="display:none;"
-      >
-        <b>iPhone / iPad</b>
-        <br><br>
-        Tippe in Safari auf
-        <br><br>
-        <strong>Teilen ⬆️</strong>
-        <br><br>
-        und anschließend auf
-        <br><br>
-        <strong>„Zum Home-Bildschirm“</strong>
-      </div>
-
-      <button
-        id="pwaInstallBtn"
-        class="pwa-install-btn"
-        type="button"
-        style="display:none;"
-      >
-        📲 App installieren
-      </button>
-
-      <button
-        id="pwaInstallLater"
-        class="pwa-later-btn"
-        type="button"
-      >
-        Jetzt nicht
-      </button>
-
-    </div>
-  </div>
-
-
-  <script>
-    let pwaDeferredPrompt = null;
-
-    const pwaParams =
-      new URLSearchParams(window.location.search);
-
-    const pwaInstallRequested =
-      pwaParams.get('install') === '1';
-
-    const pwaOverlay =
-      document.getElementById('pwaInstallOverlay');
-
-    const pwaInstallBtn =
-      document.getElementById('pwaInstallBtn');
-
-    const pwaLaterBtn =
-      document.getElementById('pwaInstallLater');
-
-    const pwaInstallText =
-      document.getElementById('pwaInstallText');
-
-    const pwaIosHelp =
-      document.getElementById('pwaIosHelp');
-
-
-    function pwaIsInstalled() {
-      return (
-        window.matchMedia('(display-mode: standalone)').matches ||
-        window.navigator.standalone === true
-      );
-    }
-
-
-    function pwaCleanUrl() {
-      const url =
-        new URL(window.location.href);
-
-      url.searchParams.delete('install');
-      url.searchParams.delete('source');
-
-      window.history.replaceState(
-        {},
-        '',
-        url.pathname + url.search + url.hash
-      );
-    }
-
-
-    function pwaShowAndroidInstall() {
-      if (pwaIsInstalled()) {
-        pwaCleanUrl();
-        return;
-      }
-
-      pwaIosHelp.style.display = 'none';
-      pwaInstallBtn.style.display = 'block';
-
-      pwaInstallText.innerHTML =
-        'VB Behördenpost kann als App auf diesem Gerät installiert werden.';
-
-      pwaOverlay.classList.add('show');
-    }
-
-
-    function pwaShowIosInstall() {
-      pwaInstallBtn.style.display = 'none';
-      pwaIosHelp.style.display = 'block';
-
-      pwaInstallText.innerHTML =
-        'Lege VB Behördenpost auf deinem Home-Bildschirm ab.';
-
-      pwaOverlay.classList.add('show');
-    }
-
-
-    function pwaShowBrowserFallback() {
-      pwaInstallBtn.style.display = 'none';
-      pwaIosHelp.style.display = 'none';
-
-      pwaInstallText.innerHTML = `
-        <b>VB Behördenpost wurde geöffnet.</b>
-
-        <div class="pwa-browser-help">
-          Falls dein Browser keinen Installationsdialog anzeigt:
-          <br><br>
-          <b>☰ Browser-Menü</b>
-          <br>
-          → <b>Seite hinzufügen zu</b>
-          <br>
-          → <b>Startbildschirm</b>
-        </div>
-      `;
-
-      pwaOverlay.classList.add('show');
-    }
-
-
-    window.addEventListener(
-      'beforeinstallprompt',
-      function(event) {
-        event.preventDefault();
-
-        pwaDeferredPrompt =
-          event;
-
-        console.log(
-          'VB Behördenpost: Installation verfügbar'
-        );
-
-        if (
-          pwaInstallRequested &&
-          !pwaIsInstalled()
-        ) {
-          pwaShowAndroidInstall();
-        }
-      }
-    );
-
-
-    pwaInstallBtn.addEventListener(
-      'click',
-      async function() {
-        if (!pwaDeferredPrompt) {
-          pwaShowBrowserFallback();
-          return;
-        }
-
-        pwaDeferredPrompt.prompt();
-
-        const result =
-          await pwaDeferredPrompt.userChoice;
-
-        console.log(
-          'VB Behördenpost Installation:',
-          result.outcome
-        );
-
-        pwaDeferredPrompt =
-          null;
-
-        pwaOverlay.classList.remove('show');
-
-        pwaCleanUrl();
-      }
-    );
-
-
-    pwaLaterBtn.addEventListener(
-      'click',
-      function() {
-        pwaOverlay.classList.remove('show');
-        pwaCleanUrl();
-      }
-    );
-
-
-    window.addEventListener(
-      'appinstalled',
-      function() {
-        pwaDeferredPrompt = null;
-
-        pwaOverlay.classList.remove('show');
-
-        pwaCleanUrl();
-
-        console.log(
-          'VB Behördenpost wurde installiert.'
-        );
-      }
-    );
-
-
-    window.addEventListener(
-      'load',
-      function() {
-        if (!pwaInstallRequested) {
-          return;
-        }
-
-        if (pwaIsInstalled()) {
-          pwaCleanUrl();
-          return;
-        }
-
-        const ua =
-          navigator.userAgent;
-
-        const ios =
-          /iPhone|iPad|iPod/i.test(ua) ||
-          (
-            navigator.platform === 'MacIntel' &&
-            navigator.maxTouchPoints > 1
-          );
-
-        if (ios) {
-          setTimeout(
-            pwaShowIosInstall,
-            600
-          );
-
-          return;
-        }
-
-        setTimeout(
-          function() {
-            if (pwaDeferredPrompt) {
-              pwaShowAndroidInstall();
-            } else {
-              pwaShowBrowserFallback();
-            }
-          },
-          5000
-        );
-      }
-    );
   </script>
 
   <script>
