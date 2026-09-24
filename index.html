@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#25346f">
 
   <title>VB Behördenpost</title>
-  <!-- V16: Kalender-API + Zuweisung ohne Neuladen -->
+  <!-- V14: Termine + Kalenderfehler sauber behandelt -->
 
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon-192.png">
@@ -2507,9 +2507,6 @@
     let CURRENT_ROUTE = 'home';
     let APP_STARTED = false;
     let ASSIGNMENT_DATA = null;
-    let ASSIGNMENTS_LOADING = false;
-    let NOTES_LOADING = false;
-    let FILTERS_LOADED = false;
     let FILTER_DATA = null;
     let CURRENT_OPEN_NOTE = null;
     const RECENT_STORAGE_KEY = 'vb_behoerdenpost_recent_v2';
@@ -2567,7 +2564,7 @@
         const timer = setTimeout(function() {
           cleanup();
           reject(new Error('Zeitüberschreitung beim Laden der Daten.'));
-        }, 35000);
+        }, 20000);
         document.head.appendChild(script);
       });
     }
@@ -2676,22 +2673,11 @@
           document.getElementById('appView').classList.remove('hidden');
           APP_STARTED = true;
           renderDashboard();
-
-          if (
-            data &&
-            data.filterdaten
-          ) {
-            applyFilterData(
-              data.filterdaten
-            );
-          }
-
+          loadFilterData();
           renderRecent();
+          loadAssignments();
           initMobileHistory();
           setLoading(false);
-
-          // Erst nachdem die Startseite sichtbar ist:
-          loadSecondaryDataSequentially();
         })
         .catch(function() {
           setLoading(false);
@@ -2863,18 +2849,7 @@
         .then(function(data) {
           APP_DATA = data || {};
           renderDashboard();
-
-          if (
-            data &&
-            data.filterdaten
-          ) {
-            applyFilterData(
-              data.filterdaten
-            );
-          }
-
           setLoading(false);
-          loadSecondaryDataSequentially();
         })
         .catch(handleError);
     }
@@ -2938,51 +2913,10 @@
         categories
       );
 
-      // Zusatzdaten werden bewusst NACHEINANDER geladen.
-      // Dadurch laufen nicht mehrere Apps-Script-Requests gleichzeitig.
+      loadOpenNotes();
+      loadAssignments();
     }
 
-
-
-
-    function applyFilterData(data) {
-      FILTER_DATA = data || {};
-      fillSelect(
-        'filterKategorie',
-        FILTER_DATA.kategorien || [],
-        'Alle Kategorien'
-      );
-      fillSelect(
-        'filterBehoerde',
-        FILTER_DATA.behoerden || [],
-        'Alle Behörden'
-      );
-      FILTERS_LOADED = true;
-    }
-
-
-    function loadSecondaryDataSequentially() {
-
-      /*
-       * Wichtig für Apps Script:
-       * Nicht Bootstrap, Notizen, Zuweisungen und Filter gleichzeitig
-       * auf dasselbe Spreadsheet loslassen.
-       */
-
-      Promise.resolve()
-        .then(function() {
-          return loadOpenNotes();
-        })
-        .then(function() {
-          return loadAssignments();
-        })
-        .catch(function(error) {
-          console.error(
-            'Zusatzdaten:',
-            error
-          );
-        });
-    }
 
 
     function renderLatest(rows) {
@@ -4075,112 +4009,26 @@
 
     function loadOpenNotes() {
       const root = document.getElementById('openNotesList');
-
-      if (!root || !API_TOKEN) {
-        return Promise.resolve();
-      }
-
-      if (NOTES_LOADING) {
-        return Promise.resolve();
-      }
-
-      NOTES_LOADING = true;
-
-      root.innerHTML =
-        '<div class="empty">Notizen werden geladen …</div>';
-
-      return apiCall(
-        'notizen',
-        {status:'OFFEN'}
-      )
-        .then(function(res) {
-
-          const notes =
-            (res && res.notizen) || [];
-
-          window.__VB_OPEN_NOTES =
-            notes;
-
-          if (!notes.length) {
-
-            root.innerHTML =
-              '<div class="empty">Keine offenen Begehungsnotizen. ✅</div>';
-
-            return;
-          }
-
-          root.innerHTML =
-            notes
-              .slice(0,12)
-              .map(function(n) {
-
-                return `
-                  <div
-                    class="open-note-item"
-                    data-id="${escapeHtml(n.id)}"
-                    onclick="openOpenNoteDetail(this.dataset.id)"
-                  >
-                    <div class="open-note-title">
-                      ${escapeHtml(n.objekt || n.adresse || n.vorgang)}
-                    </div>
-
-                    <div class="open-note-sub">
-                      ${escapeHtml(n.bearbeiter || '')}
-                      ·
-                      ${escapeHtml(n.erstelltAm || '')}
-                    </div>
-
-                    <div class="open-note-preview">
-                      ${escapeHtml(n.notiz || '')}
-                    </div>
-
-                    <div class="open-note-hint">
-                      Notiz antippen für Vollansicht
-                    </div>
-
-                    <div class="open-note-actions">
-                      <button
-                        type="button"
-                        class="open-note-edit"
-                        data-id="${escapeHtml(n.id)}"
-                        onclick="event.stopPropagation();editOpenNote(this.dataset.id)"
-                      >
-                        Bearbeiten
-                      </button>
-
-                      <button
-                        type="button"
-                        class="open-note-finish"
-                        data-id="${escapeHtml(n.id)}"
-                        onclick="event.stopPropagation();finishOpenNote(this.dataset.id)"
-                      >
-                        Abschließen
-                      </button>
-
-                      <button
-                        type="button"
-                        class="open-note-delete"
-                        data-id="${escapeHtml(n.id)}"
-                        onclick="event.stopPropagation();deleteOpenNote(this.dataset.id)"
-                      >
-                        Löschen
-                      </button>
-                    </div>
-                  </div>
-                `;
-              })
-              .join('');
-        })
-        .catch(function(err) {
-
-          console.error(err);
-
-          root.innerHTML =
-            '<div class="empty">Offene Notizen konnten nicht geladen werden.</div>';
-        })
-        .finally(function() {
-          NOTES_LOADING = false;
-        });
+      if (!root || !API_TOKEN) return;
+      root.innerHTML='<div class="empty">Notizen werden geladen …</div>';
+      apiCall('notizen',{status:'OFFEN'}).then(function(res){
+        const notes=(res&&res.notizen)||[];
+        if(!notes.length){root.innerHTML='<div class="empty">Keine offenen Begehungsnotizen. ✅</div>';return;}
+        window.__VB_OPEN_NOTES = notes;
+        root.innerHTML=notes.slice(0,12).map(function(n){
+          return `<div class="open-note-item" data-id="${escapeHtml(n.id)}" onclick="openOpenNoteDetail(this.dataset.id)">
+            <div class="open-note-title">${escapeHtml(n.objekt || n.adresse || n.vorgang)}</div>
+            <div class="open-note-sub">${escapeHtml(n.bearbeiter || '')} · ${escapeHtml(n.erstelltAm || '')}</div>
+            <div class="open-note-preview">${escapeHtml(n.notiz || '')}</div>
+            <div class="open-note-hint">Notiz antippen für Vollansicht</div>
+            <div class="open-note-actions">
+              <button type="button" class="open-note-edit" data-id="${escapeHtml(n.id)}" onclick="event.stopPropagation();editOpenNote(this.dataset.id)">Bearbeiten</button>
+              <button type="button" class="open-note-finish" data-id="${escapeHtml(n.id)}" onclick="event.stopPropagation();finishOpenNote(this.dataset.id)">Abschließen</button>
+              <button type="button" class="open-note-delete" data-id="${escapeHtml(n.id)}" onclick="event.stopPropagation();deleteOpenNote(this.dataset.id)">Löschen</button>
+            </div>
+          </div>`;
+        }).join('');
+      }).catch(function(err){console.error(err);root.innerHTML='<div class="empty">Offene Notizen konnten nicht geladen werden.</div>';});
     }
 
     function getOpenNoteById(id) {
@@ -4355,60 +4203,28 @@
        ============================================================ */
 
     function loadAssignments() {
-      const root =
-        document.getElementById(
-          'assignmentList'
-        );
-
-      if (!root || !API_TOKEN) {
-        return Promise.resolve();
-      }
-
-      if (ASSIGNMENTS_LOADING) {
-        return Promise.resolve();
-      }
-
-      ASSIGNMENTS_LOADING = true;
+      const root = document.getElementById('assignmentList');
+      if (!root || !API_TOKEN) return;
 
       root.innerHTML =
         '<div class="empty">Ladungen werden geladen …</div>';
 
-      return apiCall(
-        'ladungen_zuweisung'
-      )
+      apiCall('ladungen_zuweisung')
         .then(function(res) {
-
-          if (
-            !res ||
-            res.ok === false
-          ) {
-
-            throw new Error(
-              (res && res.error) ||
-              'Ladungen konnten nicht geladen werden.'
-            );
+          if (!res || res.ok === false) {
+            throw new Error((res && res.error) || 'Ladungen konnten nicht geladen werden.');
           }
 
-          ASSIGNMENT_DATA =
-            res;
-
-          renderAssignments(
-            res
-          );
-
-          return res;
+          ASSIGNMENT_DATA = res;
+          renderAssignments(res);
         })
         .catch(function(err) {
-
           console.error(err);
-
           root.innerHTML =
             '<div class="empty">Ladungen konnten nicht geladen werden.</div>';
-        })
-        .finally(function() {
-          ASSIGNMENTS_LOADING = false;
         });
     }
+
 
     function renderAssignments(data) {
       const root = document.getElementById('assignmentList');
@@ -4516,13 +4332,8 @@
                 type="button"
                 class="btn btn-danger-soft"
                 data-vorgang="${escapeHtml(row.vorgang || '')}"
-                data-gruppen-key="${escapeHtml(row.ausnahmeKey || '')}"
                 data-title="${escapeHtml(title)}"
-                onclick="markNotALadung(
-                  this.dataset.vorgang,
-                  this.dataset.title,
-                  this.dataset.gruppenKey
-                )"
+                onclick="markNotALadung(this.dataset.vorgang, this.dataset.title)"
               >
                 Keine Ladung
               </button>
@@ -4540,63 +4351,16 @@
           'assign_' + vorgang
         );
 
-      if (
-        !select ||
-        !select.value
-      ) {
-        showToast(
-          'Bitte zuerst eine Person auswählen.'
-        );
+      if (!select || !select.value) {
+        showToast('Bitte zuerst eine Person auswählen.');
         return;
       }
 
       const zustaendig =
         select.value;
 
-      const card =
-        document.querySelector(
-          '.assignment-item[data-vorgang="' +
-          CSS.escape(
-            String(vorgang)
-          ) +
-          '"]'
-        );
+      setLoading(true);
 
-      const owner =
-        card
-          ? card.querySelector(
-              '.assignment-owner'
-            )
-          : null;
-
-      const button =
-        card
-          ? card.querySelector(
-              '.assignment-save'
-            )
-          : null;
-
-
-      const oldButtonText =
-        button
-          ? button.textContent
-          : 'Zuweisung speichern';
-
-
-      if (button) {
-        button.disabled = true;
-        button.textContent =
-          'Wird gespeichert …';
-      }
-
-      select.disabled =
-        true;
-
-
-      /*
-       * Bewusst KEIN setLoading(true):
-       * Die komplette App bleibt sichtbar und benutzbar.
-       */
       apiCall(
         'ladung_zuweisen',
         {
@@ -4604,242 +4368,94 @@
           zustaendig:zustaendig
         }
       )
-        .then(
-          function(res) {
+        .then(function(res) {
+          setLoading(false);
 
-            if (
-              !res ||
-              !res.ok
-            ) {
-
-              throw new Error(
-                (
-                  res &&
-                  res.error
-                ) ||
-                'Zuweisung konnte nicht gespeichert werden.'
-              );
-            }
-
-
-            /*
-             * Karte direkt lokal aktualisieren.
-             * KEIN loadAssignments() und KEIN Seiten-Neuladen.
-             */
-            if (owner) {
-
-              owner.textContent =
-                'Zuständig: ' +
-                zustaendig;
-
-              owner.classList.remove(
-                'unassigned'
-              );
-            }
-
-
-            if (
-              ASSIGNMENT_DATA &&
-              Array.isArray(
-                ASSIGNMENT_DATA.ladungen
-              )
-            ) {
-
-              const item =
-                ASSIGNMENT_DATA.ladungen.find(
-                  function(x) {
-                    return (
-                      x.vorgang ===
-                      vorgang
-                    );
-                  }
-                );
-
-              if (item) {
-
-                item.zustaendig =
-                  zustaendig;
-
-                item.zugewiesenAm =
-                  new Date()
-                    .toLocaleString(
-                      'de-AT'
-                    );
-              }
-            }
-
-
-            if (
-              res.kalenderAktualisiert
-            ) {
-
-              showToast(
-                'Zugewiesen an ' +
-                zustaendig +
-                ' · Kalender aktualisiert.'
-              );
-
-            } else {
-
-              showToast(
-                'Zuweisung gespeichert: ' +
-                zustaendig +
-                '. Kalender: ' +
-                (
-                  res.kalenderstatus ||
-                  'nicht aktualisiert'
-                )
-              );
-            }
+          if (!res || !res.ok) {
+            throw new Error((res && res.error) || 'Zuweisung konnte nicht gespeichert werden.');
           }
-        )
-        .catch(
-          function(err) {
 
-            handleError(
-              err
+          if (
+            res.kalenderAktualisiert
+          ) {
+            showToast(
+              'Zugewiesen an ' +
+              zustaendig +
+              ' · Kalender aktualisiert.'
+            );
+          } else {
+            showToast(
+              'Zugewiesen an ' +
+              zustaendig +
+              '. ' +
+              (res.kalenderstatus || '')
             );
           }
-        )
-        .finally(
-          function() {
 
-            select.disabled =
-              false;
-
-            if (button) {
-
-              button.disabled =
-                false;
-
-              button.textContent =
-                oldButtonText;
-            }
-          }
-        );
+          // Nur die Zuweisungsliste aktualisieren.
+          loadAssignments();
+        })
+        .catch(function(err) {
+          setLoading(false);
+          handleError(err);
+        });
     }
 
 
-    function markNotALadung(
-      vorgang,
-      title,
-      gruppenKey
-    ) {
 
-      if (
-        !vorgang &&
-        !gruppenKey
-      ) {
-        return;
-      }
+    function markNotALadung(vorgang, title) {
+      if (!vorgang) return;
 
       const label =
-        title ||
-        vorgang ||
-        'Eintrag';
+        title || vorgang;
 
       const ok =
         confirm(
           'Diesen Eintrag aus "Ladungen zuweisen" ausblenden?\n\n' +
           label +
           '\n\n' +
-          'Wenn davon Dubletten existieren, werden sie gemeinsam ausgeblendet.\n' +
-          'Das Posteingangsbuch und der Kalender werden NICHT gelöscht.'
+          'Das Posteingangsbuch und der Kalender werden dabei NICHT gelöscht oder verändert.'
         );
 
-      if (!ok) {
-        return;
-      }
+      if (!ok) return;
 
       apiCall(
         'ladung_ausblenden',
         {
-          vorgang:
-            vorgang || '',
-
-          gruppenKey:
-            gruppenKey || '',
-
-          grund:
-            'In der VB-App als "Keine Ladung" markiert'
+          vorgang:vorgang,
+          grund:'In der VB-App als "Keine Ladung" markiert'
         }
       )
-        .then(
-          function(res) {
+        .then(function(res) {
 
-            if (
-              !res ||
-              !res.ok
-            ) {
-
-              throw new Error(
-                (
-                  res &&
-                  res.error
-                ) ||
-                'Eintrag konnte nicht ausgeblendet werden.'
-              );
-            }
-
-            const card =
-              document.querySelector(
-                '.assignment-item[data-vorgang="' +
-                CSS.escape(
-                  String(
-                    vorgang
-                  )
-                ) +
-                '"]'
-              );
-
-            if (card) {
-
-              card.remove();
-            }
-
-            if (
-              ASSIGNMENT_DATA &&
-              Array.isArray(
-                ASSIGNMENT_DATA.ladungen
-              )
-            ) {
-
-              ASSIGNMENT_DATA.ladungen =
-                ASSIGNMENT_DATA.ladungen.filter(
-                  function(x) {
-                    return (
-                      x.vorgang !==
-                      vorgang
-                    );
-                  }
-                );
-            }
-
-            const root =
-              document.getElementById(
-                'assignmentList'
-              );
-
-            if (
-              root &&
-              !root.querySelector(
-                '.assignment-item'
-              )
-            ) {
-
-              root.innerHTML =
-                '<div class="empty">Derzeit keine anstehenden Ladungen. ✅</div>';
-            }
-
-            showToast(
-              'Eintrag samt Dubletten aus der Ladungszuweisung ausgeblendet.'
+          if (!res || !res.ok) {
+            throw new Error(
+              (res && res.error) ||
+              'Eintrag konnte nicht ausgeblendet werden.'
             );
           }
-        )
-        .catch(
-          handleError
-        );
+
+          const card =
+            document.querySelector(
+              '.assignment-item[data-vorgang="' +
+              CSS.escape(String(vorgang)) +
+              '"]'
+            );
+
+          if (card) {
+            card.remove();
+          }
+
+          loadDashboard();
+          loadAssignments();
+
+          showToast(
+            'Eintrag ausgeblendet. Er verschwindet auch aus den anstehenden Terminen.'
+          );
+        })
+        .catch(handleError);
     }
+
 
     /* ============================================================
        V11 – ANDROID / SAMSUNG ZURÜCK-NAVIGATION
@@ -5032,26 +4648,14 @@
        ============================================================ */
 
     function loadFilterData() {
-
-      if (FILTERS_LOADED) {
-        return Promise.resolve(
-          FILTER_DATA || {}
-        );
-      }
-
-      return apiCall('filterdaten')
+      apiCall('filterdaten')
         .then(function(data) {
-          applyFilterData(
-            data || {}
-          );
-          return data || {};
+          FILTER_DATA = data || {};
+          fillSelect('filterKategorie', FILTER_DATA.kategorien || [], 'Alle Kategorien');
+          fillSelect('filterBehoerde', FILTER_DATA.behoerden || [], 'Alle Behörden');
         })
         .catch(function(error) {
-          console.error(
-            'Filterdaten:',
-            error
-          );
-          return {};
+          console.error('Filterdaten:', error);
         });
     }
 
@@ -5069,13 +4673,6 @@
     function toggleFilters() {
       const panel = document.getElementById('filterPanel');
       panel.classList.toggle('show');
-
-      if (
-        panel.classList.contains('show') &&
-        !FILTERS_LOADED
-      ) {
-        loadFilterData();
-      }
     }
 
     function hasActiveFilters() {
@@ -5524,8 +5121,7 @@
 
 
     function pwaCleanUrl() {
-      const url =
-        new URL(window.location.href);
+      const url = new URL(window.location.href);
 
       url.searchParams.delete('install');
       url.searchParams.delete('source');
