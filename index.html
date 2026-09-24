@@ -1494,6 +1494,12 @@
     .note-edit{background:#eef1fb;color:#25346f}.note-finish{background:#25346f;color:#fff}
     .open-notes-list{display:grid;gap:8px}
     .open-note-item{padding:11px;border-radius:12px;background:#f7f8fc;cursor:pointer;border:1px solid var(--border)}
+
+    .open-note-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .open-note-actions button{border:0;border-radius:10px;padding:8px 11px;font-weight:800;cursor:pointer;font-size:12px}
+    .open-note-edit{background:#eef1fb;color:#25346f}
+    .open-note-finish{background:#e7f7ed;color:#176437}
+    .open-note-delete{background:#fdecec;color:#9b1c1c}
     .open-note-title{font-size:11px;font-weight:900}.open-note-sub{font-size:9px;color:var(--muted);margin-top:4px}
     .modal-card{width:min(760px,100%)}
     @media(max-width:650px){.detail-summary{grid-template-columns:1fr}.detail-summary .summary-card.full{grid-column:auto}.modal-card{padding:15px;border-radius:16px}.detail-grid{grid-template-columns:1fr}}
@@ -3382,10 +3388,10 @@
       if (!root) return;
 
       const docs = (documents || []).filter(doc => doc && (doc.fileId || doc.url));
-      if (status) status.textContent = docs.length ? (docs.length + (docs.length === 1 ? ' Dokument verfügbar' : ' Dokumente verfügbar')) : 'Kein ladbares Dokument gefunden';
+      if (status) status.textContent = docs.length ? (docs.length + (docs.length === 1 ? ' Dokument verfügbar' : ' Dokumente verfügbar')) : 'Kein Dokument gefunden';
 
       if (!docs.length) {
-        root.innerHTML = '<div class="document-empty">Für diesen Vorgang wurde derzeit kein ladbares Dokument gefunden.</div>';
+        root.innerHTML = '<div class="document-empty">Kein Dokumentlink ist mehr gültig und auch die Archivsuche hat keine eindeutig passende Datei gefunden.</div>';
         return;
       }
 
@@ -3528,8 +3534,63 @@
       apiCall('notizen',{status:'OFFEN'}).then(function(res){
         const notes=(res&&res.notizen)||[];
         if(!notes.length){root.innerHTML='<div class="empty">Keine offenen Begehungsnotizen. ✅</div>';return;}
-        root.innerHTML=notes.slice(0,12).map(function(n){return `<div class="open-note-item" data-vorgang="${escapeHtml(n.vorgang)}" onclick="openNoteVorgang(this.dataset.vorgang)"><div class="open-note-title">${escapeHtml(n.objekt || n.adresse || n.vorgang)}</div><div class="open-note-sub">${escapeHtml(n.bearbeiter || '')} · ${escapeHtml(n.erstelltAm || '')} · ${escapeHtml((n.notiz || '').substring(0,100))}</div></div>`;}).join('');
+        window.__VB_OPEN_NOTES = notes;
+        root.innerHTML=notes.slice(0,12).map(function(n){
+          return `<div class="open-note-item" data-vorgang="${escapeHtml(n.vorgang)}" onclick="openNoteVorgang(this.dataset.vorgang)">
+            <div class="open-note-title">${escapeHtml(n.objekt || n.adresse || n.vorgang)}</div>
+            <div class="open-note-sub">${escapeHtml(n.bearbeiter || '')} · ${escapeHtml(n.erstelltAm || '')}</div>
+            <div class="note-text" style="margin-top:8px">${escapeHtml(n.notiz || '')}</div>
+            <div class="open-note-actions">
+              <button type="button" class="open-note-edit" data-id="${escapeHtml(n.id)}" onclick="event.stopPropagation();editOpenNote(this.dataset.id)">Bearbeiten</button>
+              <button type="button" class="open-note-finish" data-id="${escapeHtml(n.id)}" onclick="event.stopPropagation();finishOpenNote(this.dataset.id)">Abschließen</button>
+              <button type="button" class="open-note-delete" data-id="${escapeHtml(n.id)}" onclick="event.stopPropagation();deleteOpenNote(this.dataset.id)">Löschen</button>
+            </div>
+          </div>`;
+        }).join('');
       }).catch(function(err){console.error(err);root.innerHTML='<div class="empty">Offene Notizen konnten nicht geladen werden.</div>';});
+    }
+
+    function getOpenNoteById(id) {
+      return (window.__VB_OPEN_NOTES || []).find(function(n){ return n.id === id; }) || null;
+    }
+
+    function getOpenNoteBearbeiter(note) {
+      let saved = '';
+      try { saved = localStorage.getItem(NOTE_AUTHOR_KEY) || ''; } catch(e) {}
+      return String(saved || (note && note.bearbeiter) || '').trim();
+    }
+
+    function editOpenNote(id) {
+      const n = getOpenNoteById(id);
+      if (!n) return;
+      const text = prompt('Notiz bearbeiten:', n.notiz || '');
+      if (text === null) return;
+      const bearbeiter = getOpenNoteBearbeiter(n);
+      if (!bearbeiter) { showToast('Bitte zuerst bei einem Vorgang einen Bearbeiter hinterlegen.'); return; }
+      apiCall('notiz_update',{id:id,notiz:text,bearbeiter:bearbeiter})
+        .then(function(res){ if(!res||!res.ok) throw new Error((res&&res.error)||'Notiz konnte nicht geändert werden.'); showToast('Notiz aktualisiert.'); loadOpenNotes(); })
+        .catch(handleError);
+    }
+
+    function finishOpenNote(id) {
+      const n = getOpenNoteById(id);
+      if (!n) return;
+      const bearbeiter = getOpenNoteBearbeiter(n);
+      if (!bearbeiter) { showToast('Bitte zuerst bei einem Vorgang einen Bearbeiter hinterlegen.'); return; }
+      const doneText = prompt('Erledigungsnotiz (optional):','');
+      if (doneText === null) return;
+      apiCall('notiz_erledigen',{id:id,bearbeiter:bearbeiter,erledigungsnotiz:doneText})
+        .then(function(res){ if(!res||!res.ok) throw new Error((res&&res.error)||'Notiz konnte nicht abgeschlossen werden.'); showToast('Notiz abgeschlossen.'); loadOpenNotes(); })
+        .catch(handleError);
+    }
+
+    function deleteOpenNote(id) {
+      const n = getOpenNoteById(id);
+      if (!n) return;
+      if (!confirm('Diese Begehungsnotiz wirklich dauerhaft löschen?')) return;
+      apiCall('notiz_loeschen',{id:id})
+        .then(function(res){ if(!res||!res.ok) throw new Error((res&&res.error)||'Notiz konnte nicht gelöscht werden.'); showToast('Notiz gelöscht.'); loadOpenNotes(); })
+        .catch(handleError);
     }
 
     function openNoteVorgang(vorgang) {
