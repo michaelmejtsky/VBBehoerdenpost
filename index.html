@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#25346f">
 
   <title>VB Behördenpost</title>
-  <!-- V15: Kalender-Zuweisung + echte Ladungen + Gruppen-Ausblenden -->
+  <!-- V16: Kalender-API + Zuweisung ohne Neuladen -->
 
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon-192.png">
@@ -4540,16 +4540,63 @@
           'assign_' + vorgang
         );
 
-      if (!select || !select.value) {
-        showToast('Bitte zuerst eine Person auswählen.');
+      if (
+        !select ||
+        !select.value
+      ) {
+        showToast(
+          'Bitte zuerst eine Person auswählen.'
+        );
         return;
       }
 
       const zustaendig =
         select.value;
 
-      setLoading(true);
+      const card =
+        document.querySelector(
+          '.assignment-item[data-vorgang="' +
+          CSS.escape(
+            String(vorgang)
+          ) +
+          '"]'
+        );
 
+      const owner =
+        card
+          ? card.querySelector(
+              '.assignment-owner'
+            )
+          : null;
+
+      const button =
+        card
+          ? card.querySelector(
+              '.assignment-save'
+            )
+          : null;
+
+
+      const oldButtonText =
+        button
+          ? button.textContent
+          : 'Zuweisung speichern';
+
+
+      if (button) {
+        button.disabled = true;
+        button.textContent =
+          'Wird gespeichert …';
+      }
+
+      select.disabled =
+        true;
+
+
+      /*
+       * Bewusst KEIN setLoading(true):
+       * Die komplette App bleibt sichtbar und benutzbar.
+       */
       apiCall(
         'ladung_zuweisen',
         {
@@ -4557,42 +4604,120 @@
           zustaendig:zustaendig
         }
       )
-        .then(function(res) {
-          setLoading(false);
+        .then(
+          function(res) {
 
-          if (!res || !res.ok) {
-            throw new Error((res && res.error) || 'Zuweisung konnte nicht gespeichert werden.');
-          }
+            if (
+              !res ||
+              !res.ok
+            ) {
 
-          if (
-            res.kalenderAktualisiert
-          ) {
-            showToast(
-              'Zugewiesen an ' +
-              zustaendig +
-              ' · Kalender aktualisiert.'
-            );
-          } else {
-            showToast(
-              'Zuweisung gespeichert: ' +
-              zustaendig +
-              '. Kalender: ' +
-              (
-                res.kalenderstatus ||
-                'nicht aktualisiert'
+              throw new Error(
+                (
+                  res &&
+                  res.error
+                ) ||
+                'Zuweisung konnte nicht gespeichert werden.'
+              );
+            }
+
+
+            /*
+             * Karte direkt lokal aktualisieren.
+             * KEIN loadAssignments() und KEIN Seiten-Neuladen.
+             */
+            if (owner) {
+
+              owner.textContent =
+                'Zuständig: ' +
+                zustaendig;
+
+              owner.classList.remove(
+                'unassigned'
+              );
+            }
+
+
+            if (
+              ASSIGNMENT_DATA &&
+              Array.isArray(
+                ASSIGNMENT_DATA.ladungen
               )
+            ) {
+
+              const item =
+                ASSIGNMENT_DATA.ladungen.find(
+                  function(x) {
+                    return (
+                      x.vorgang ===
+                      vorgang
+                    );
+                  }
+                );
+
+              if (item) {
+
+                item.zustaendig =
+                  zustaendig;
+
+                item.zugewiesenAm =
+                  new Date()
+                    .toLocaleString(
+                      'de-AT'
+                    );
+              }
+            }
+
+
+            if (
+              res.kalenderAktualisiert
+            ) {
+
+              showToast(
+                'Zugewiesen an ' +
+                zustaendig +
+                ' · Kalender aktualisiert.'
+              );
+
+            } else {
+
+              showToast(
+                'Zuweisung gespeichert: ' +
+                zustaendig +
+                '. Kalender: ' +
+                (
+                  res.kalenderstatus ||
+                  'nicht aktualisiert'
+                )
+              );
+            }
+          }
+        )
+        .catch(
+          function(err) {
+
+            handleError(
+              err
             );
           }
+        )
+        .finally(
+          function() {
 
-          // Nur die Zuweisungsliste aktualisieren.
-          loadAssignments();
-        })
-        .catch(function(err) {
-          setLoading(false);
-          handleError(err);
-        });
+            select.disabled =
+              false;
+
+            if (button) {
+
+              button.disabled =
+                false;
+
+              button.textContent =
+                oldButtonText;
+            }
+          }
+        );
     }
-
 
 
     function markNotALadung(
@@ -4656,15 +4781,59 @@
               );
             }
 
-            /*
-             * Danach nur die Ladungsliste aktualisieren.
-             * Kein Seiten-Reload.
-             */
+            const card =
+              document.querySelector(
+                '.assignment-item[data-vorgang="' +
+                CSS.escape(
+                  String(
+                    vorgang
+                  )
+                ) +
+                '"]'
+              );
+
+            if (card) {
+
+              card.remove();
+            }
+
+            if (
+              ASSIGNMENT_DATA &&
+              Array.isArray(
+                ASSIGNMENT_DATA.ladungen
+              )
+            ) {
+
+              ASSIGNMENT_DATA.ladungen =
+                ASSIGNMENT_DATA.ladungen.filter(
+                  function(x) {
+                    return (
+                      x.vorgang !==
+                      vorgang
+                    );
+                  }
+                );
+            }
+
+            const root =
+              document.getElementById(
+                'assignmentList'
+              );
+
+            if (
+              root &&
+              !root.querySelector(
+                '.assignment-item'
+              )
+            ) {
+
+              root.innerHTML =
+                '<div class="empty">Derzeit keine anstehenden Ladungen. ✅</div>';
+            }
+
             showToast(
               'Eintrag samt Dubletten aus der Ladungszuweisung ausgeblendet.'
             );
-
-            return loadAssignments();
           }
         )
         .catch(
