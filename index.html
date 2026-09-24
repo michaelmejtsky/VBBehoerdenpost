@@ -1512,6 +1512,108 @@
     .modal-card{width:min(760px,100%)}
     @media(max-width:650px){.detail-summary{grid-template-columns:1fr}.detail-summary .summary-card.full{grid-column:auto}.modal-card{padding:15px;border-radius:16px}.detail-grid{grid-template-columns:1fr}}
 
+  
+
+    /* ============================================================
+       PWA INSTALLATION
+       ============================================================ */
+
+    .pwa-install-overlay {
+      position:fixed;
+      inset:0;
+      z-index:99999;
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      padding:16px;
+      background:rgba(15,22,42,.72);
+      backdrop-filter:blur(7px);
+      -webkit-backdrop-filter:blur(7px);
+    }
+
+    .pwa-install-overlay.show {
+      display:flex;
+    }
+
+    .pwa-install-card {
+      width:min(450px,100%);
+      padding:26px 21px;
+      margin-bottom:env(safe-area-inset-bottom);
+      border-radius:25px;
+      background:#fff;
+      text-align:center;
+      box-shadow:0 25px 80px rgba(0,0,0,.32);
+    }
+
+    .pwa-install-icon {
+      width:72px;
+      height:72px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:0 auto 15px;
+      border-radius:20px;
+      background:#eef1fb;
+      font-size:37px;
+    }
+
+    .pwa-install-small {
+      color:#34499a;
+      font-size:9px;
+      font-weight:900;
+      letter-spacing:.08em;
+    }
+
+    .pwa-install-card h2 {
+      margin:7px 0 8px;
+      color:#1e2633;
+      font-size:23px;
+      font-weight:900;
+    }
+
+    .pwa-install-card p {
+      margin:0;
+      color:#718096;
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .pwa-install-btn {
+      width:100%;
+      min-height:54px;
+      margin-top:20px;
+      border:0;
+      border-radius:14px;
+      background:linear-gradient(135deg,#25346f,#34499a);
+      color:#fff;
+      font-size:14px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .pwa-later-btn {
+      width:100%;
+      min-height:48px;
+      margin-top:9px;
+      border:0;
+      border-radius:14px;
+      background:#edf0f5;
+      color:#354052;
+      font-size:12px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .pwa-ios-help {
+      margin-top:16px;
+      padding:17px;
+      border-radius:15px;
+      background:#eef1fb;
+      color:#25346f;
+      font-size:13px;
+      line-height:1.45;
+    }
+
   </style>
 </head>
 
@@ -4156,6 +4258,184 @@
       if (m && e.target === m) closeOpenNoteDetail();
     });
 
+  </script>
+
+
+
+  <!-- ============================================================
+       PWA INSTALLATION
+       ============================================================ -->
+  <div id="pwaInstallOverlay" class="pwa-install-overlay" aria-hidden="true">
+    <div class="pwa-install-card" role="dialog" aria-modal="true" aria-labelledby="pwaInstallTitle">
+      <div class="pwa-install-icon">📄</div>
+      <div class="pwa-install-small">FEUERWEHR ST. PÖLTEN-STADT</div>
+      <h2 id="pwaInstallTitle">VB Behördenpost installieren</h2>
+      <p id="pwaInstallText">Die App kann auf diesem Gerät installiert werden.</p>
+
+      <div id="pwaIosHelp" class="pwa-ios-help" style="display:none;">
+        <b>iPhone / iPad</b><br><br>
+        Tippe in Safari auf<br><br>
+        <strong>Teilen ⬆️</strong><br><br>
+        und anschließend auf<br><br>
+        <strong>„Zum Home-Bildschirm“</strong>
+      </div>
+
+      <button id="pwaInstallBtn" type="button" class="pwa-install-btn" style="display:none;">
+        📲 App installieren
+      </button>
+
+      <button id="pwaInstallLater" type="button" class="pwa-later-btn">
+        Jetzt nicht
+      </button>
+    </div>
+  </div>
+
+
+  <script>
+    /* ============================================================
+       PWA INSTALLATION
+       ============================================================ */
+
+    let pwaDeferredPrompt = null;
+
+    const pwaParams = new URLSearchParams(window.location.search);
+    const pwaInstallRequested = pwaParams.get('install') === '1';
+
+    const pwaOverlay = document.getElementById('pwaInstallOverlay');
+    const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+    const pwaLaterBtn = document.getElementById('pwaInstallLater');
+    const pwaInstallText = document.getElementById('pwaInstallText');
+    const pwaIosHelp = document.getElementById('pwaIosHelp');
+
+    function pwaIsInstalled() {
+      return (
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true
+      );
+    }
+
+    function pwaOpenOverlay() {
+      pwaOverlay.classList.add('show');
+      pwaOverlay.setAttribute('aria-hidden', 'false');
+    }
+
+    function pwaCloseOverlay() {
+      pwaOverlay.classList.remove('show');
+      pwaOverlay.setAttribute('aria-hidden', 'true');
+    }
+
+    window.addEventListener('beforeinstallprompt', function(event) {
+      console.log('PWA: beforeinstallprompt erhalten');
+      event.preventDefault();
+      pwaDeferredPrompt = event;
+
+      if (pwaInstallRequested && !pwaIsInstalled()) {
+        pwaShowAndroidInstall();
+      }
+    });
+
+    function pwaShowAndroidInstall() {
+      if (pwaIsInstalled()) {
+        pwaCleanUrl();
+        return;
+      }
+
+      pwaIosHelp.style.display = 'none';
+      pwaInstallBtn.style.display = 'block';
+      pwaInstallText.innerHTML =
+        'VB Behördenpost kann als App auf diesem Gerät installiert werden.';
+      pwaOpenOverlay();
+    }
+
+    function pwaShowIosInstall() {
+      pwaInstallBtn.style.display = 'none';
+      pwaIosHelp.style.display = 'block';
+      pwaInstallText.innerHTML =
+        'Lege VB Behördenpost auf deinem Home-Bildschirm ab.';
+      pwaOpenOverlay();
+    }
+
+    function pwaShowSamsungFallback() {
+      pwaInstallBtn.style.display = 'none';
+      pwaIosHelp.style.display = 'none';
+      pwaInstallText.innerHTML =
+        '<b>VB Behördenpost wurde geöffnet.</b><br><br>' +
+        'Falls der Browser die Installation nicht automatisch anbietet:<br><br>' +
+        '<b>☰ Browser-Menü</b><br>' +
+        '→ <b>Seite hinzufügen zu</b> oder <b>App installieren</b><br>' +
+        '→ <b>Startbildschirm</b>';
+      pwaOpenOverlay();
+    }
+
+    pwaInstallBtn.addEventListener('click', async function() {
+      if (!pwaDeferredPrompt) {
+        pwaShowSamsungFallback();
+        return;
+      }
+
+      try {
+        pwaDeferredPrompt.prompt();
+        const result = await pwaDeferredPrompt.userChoice;
+        console.log('PWA Installation:', result.outcome);
+      } catch (error) {
+        console.warn('PWA Installation:', error);
+      } finally {
+        pwaDeferredPrompt = null;
+        pwaCloseOverlay();
+        pwaCleanUrl();
+      }
+    });
+
+    pwaLaterBtn.addEventListener('click', function() {
+      pwaCloseOverlay();
+      pwaCleanUrl();
+    });
+
+    function pwaCleanUrl() {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('install');
+      url.searchParams.delete('source');
+
+      window.history.replaceState(
+        {},
+        '',
+        url.pathname + url.search + url.hash
+      );
+    }
+
+    window.addEventListener('appinstalled', function() {
+      console.log('VB Behördenpost wurde installiert.');
+      pwaDeferredPrompt = null;
+      pwaCloseOverlay();
+      pwaCleanUrl();
+    });
+
+    window.addEventListener('load', function() {
+      if (!pwaInstallRequested) return;
+
+      if (pwaIsInstalled()) {
+        pwaCleanUrl();
+        return;
+      }
+
+      const ua = navigator.userAgent;
+      const ios =
+        /iPhone|iPad|iPod/i.test(ua) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      if (ios) {
+        setTimeout(pwaShowIosInstall, 600);
+        return;
+      }
+
+      setTimeout(function() {
+        if (pwaDeferredPrompt) {
+          pwaShowAndroidInstall();
+        } else {
+          pwaShowSamsungFallback();
+        }
+      }, 5000);
+    });
   </script>
 
   <script>
